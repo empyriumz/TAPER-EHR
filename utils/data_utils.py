@@ -8,22 +8,22 @@ import sys
 import re
 
 def read_patients_table(path):
-    p = pd.read_csv(os.path.join(path, 'PATIENTS.csv'))
+    p = pd.read_csv(os.path.join(path, 'PATIENTS.csv.gz'))
     p = p[['SUBJECT_ID', 'GENDER', 'DOB', 'DOD',]]
     p['DOB'] = pd.to_datetime(p['DOB'])
     p['DOD'] = pd.to_datetime(p['DOD'])
     return p
 
 def read_cptevents_table(path):
-    cpt = pd.read_csv(os.path.join(path, 'CPTEVENTS.csv'))
+    cpt = pd.read_csv(os.path.join(path, 'CPTEVENTS.csv.gz'))
     cpt = cpt[['SUBJECT_ID', 'HADM_ID', 'CPT_CD',]]
     return cpt
 
 
 def read_icd_procedures_table(path):
-    codes = pd.read_csv(os.path.join(path, 'D_ICD_PROCEDURES.csv'))
+    codes = pd.read_csv(os.path.join(path, 'D_ICD_PROCEDURES.csv.gz'))
     codes = codes[['ICD9_CODE', 'SHORT_TITLE', 'LONG_TITLE']]
-    procedures = pd.read_csv(os.path.join(path, 'PROCEDURES_ICD.csv'))
+    procedures = pd.read_csv(os.path.join(path, 'PROCEDURES_ICD.csv.gz'))
     procedures = procedures.merge(codes, how='inner', left_on='ICD9_CODE', right_on='ICD9_CODE')
     procedures[['SUBJECT_ID', 'HADM_ID', 'SEQ_NUM']] = procedures[['SUBJECT_ID', 'HADM_ID', 'SEQ_NUM']].astype(int)
     return procedures
@@ -34,7 +34,7 @@ def compute_time_delta(df):
     return df
 
 def read_admissions_table(path):
-    admits = pd.read_csv(os.path.join(path, 'ADMISSIONS.csv'))
+    admits = pd.read_csv(os.path.join(path, 'ADMISSIONS.csv.gz'))
     admits = admits[['SUBJECT_ID', 'HADM_ID', 'ADMITTIME', 'DISCHTIME', 'DEATHTIME', 'DIAGNOSIS', 'MARITAL_STATUS', 'ETHNICITY', 'DISCHARGE_LOCATION', 'ADMISSION_TYPE']]
     admits.ADMITTIME = pd.to_datetime(admits.ADMITTIME, format = '%Y-%m-%d %H:%M:%S', errors = 'coerce')
     admits.DISCHTIME = pd.to_datetime(admits.DISCHTIME, format = '%Y-%m-%d %H:%M:%S', errors = 'coerce')
@@ -58,7 +58,7 @@ def add_readmission_column(df_adm):
     return df_adm
 
 def read_prescriptions_table(path):
-    prescription = pd.read_csv(os.path.join(path, 'PRESCRIPTIONS.csv'))
+    prescription = pd.read_csv(os.path.join(path, 'PRESCRIPTIONS.csv.gz'))
     prescription = prescription[~ prescription['NDC'].isna()]
     prescription = prescription[['SUBJECT_ID', 'HADM_ID', 'NDC']].astype(int)
     prescription = prescription.dropna()
@@ -87,7 +87,7 @@ def filter_notes_table(admits, notes, filters = {
     return tn
 
 def read_notes_table(path):
-    notes = pd.read_csv(os.path.join(path, 'NOTEEVENTS.csv'))
+    notes = pd.read_csv(os.path.join(path, 'NOTEEVENTS.csv.gz'))
     notes['TEXT'] = notes['TEXT'].fillna(' ')
     notes['TEXT'] = notes['TEXT'].str.replace('\n',' ')
     notes['TEXT'] = notes['TEXT'].str.replace('\r',' ')
@@ -97,15 +97,15 @@ def read_notes_table(path):
     return notes
 
 def read_icustays_table(path):
-    icu = pd.read_csv(os.path.join(path, 'ICUSTAYS.csv'))
+    icu = pd.read_csv(os.path.join(path, 'ICUSTAYS.csv.gz'))
     icu['INTIME'] = pd.to_datetime(icu['INTIME'])
     icu['OUTTIME'] = pd.to_datetime(icu['OUTTIME'])
     return icu
 
 def read_icd_diagnoses_table(path):
-    codes = pd.read_csv(os.path.join(path, 'D_ICD_DIAGNOSES.csv'))
+    codes = pd.read_csv(os.path.join(path, 'D_ICD_DIAGNOSES.csv.gz'))
     codes = codes[['ICD9_CODE', 'SHORT_TITLE', 'LONG_TITLE']]
-    diagnoses = pd.read_csv(os.path.join(path, 'DIAGNOSES_ICD.csv'))
+    diagnoses = pd.read_csv(os.path.join(path, 'DIAGNOSES_ICD.csv.gz'))
     diagnoses = diagnoses.merge(codes, how='inner', left_on='ICD9_CODE', right_on='ICD9_CODE')
     diagnoses[['SUBJECT_ID', 'HADM_ID', 'SEQ_NUM']] = diagnoses[['SUBJECT_ID', 'HADM_ID', 'SEQ_NUM']].astype(int)
     return diagnoses
@@ -159,10 +159,17 @@ def merge_on_subject_admission_left(t1, t2):
     return t1.merge(t2, how='left', left_on=['SUBJECT_ID', 'HADM_ID'], right_on=['SUBJECT_ID', 'HADM_ID'])
 
 def add_age_to_icustays(stays):
-    stays['AGE'] = (stays.INTIME - stays.DOB).apply(lambda s: s / np.timedelta64(1, 's')) / 60./60/24/365
-    idxs = stays.AGE < 0
+    dob = pd.to_datetime(stays['DOB'])
+    dob = dob.values.astype('datetime64[s]')
+    intime = pd.to_datetime(stays['INTIME'])
+    intime = intime.values.astype('datetime64[s]')
+    age = intime - dob 
+    g = lambda x: x/ np.timedelta64(1, 's')/60/60/24/365
+    stays['AGE'] = np.asarray(list(map(g, age)))
+    idxs = stays.AGE < 0 
     stays.loc[idxs, 'AGE'] = 90
     return stays
+
 def normalize_column(df, column_name):
     df.loc[:, column_name] = (df[column_name] - df[column_name].min()) / (df[column_name].max() - df[column_name].min())
     return df
