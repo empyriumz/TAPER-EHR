@@ -6,6 +6,7 @@ from torch.utils.data.sampler import Sampler
 
 from .imbalanced_sampler import ImbalancedSampler
 
+
 class MySequentialSampler(Sampler):
     r"""Samples elements sequentially, always in the same order.
 
@@ -22,16 +23,26 @@ class MySequentialSampler(Sampler):
     def __len__(self):
         return len(self.data_source)
 
+
 class BaseDataLoader(DataLoader):
     """
     Base class for all data loaders
     """
-    def __init__(self, dataset, batch_size, shuffle, validation_split, num_workers, collate_fn=default_collate, seed=0):
+
+    def __init__(
+        self,
+        dataset,
+        batch_size,
+        shuffle,
+        validation_split,
+        num_workers,
+        collate_fn=default_collate,
+        seed=0,
+    ):
         self.validation_split = validation_split
         self.shuffle = shuffle
         self.seed = seed
         self.dataset = dataset
-
 
         self.batch_idx = 0
         self.n_samples = len(dataset)
@@ -39,17 +50,17 @@ class BaseDataLoader(DataLoader):
         self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
 
         self.init_kwargs = {
-            'dataset': dataset,
-            'batch_size': batch_size,
-            'shuffle': self.shuffle,
-            'collate_fn': collate_fn,
-            'num_workers': num_workers
+            "dataset": dataset,
+            "batch_size": batch_size,
+            "shuffle": self.shuffle,
+            "collate_fn": collate_fn,
+            "num_workers": num_workers,
         }
 
         super(BaseDataLoader, self).__init__(sampler=self.sampler, **self.init_kwargs)
 
     def _split_sampler(self, split):
-        if split == 0.0 and not hasattr(self.dataset, 'valid_idx'):
+        if split == 0.0 and not hasattr(self.dataset, "valid_idx"):
             return None, None
         idx_full = np.arange(self.n_samples)
         np.random.seed(self.seed)
@@ -58,8 +69,8 @@ class BaseDataLoader(DataLoader):
         # if order matters don't shuffle
         # added for med2vec dataset where order matters
         len_valid = int(self.n_samples * split)
-        if (self.shuffle):
-            if (hasattr(self.dataset, 'valid_idx')):
+        if self.shuffle:
+            if hasattr(self.dataset, "valid_idx"):
                 valid_idx = self.dataset.valid_idx
                 train_idx = self.dataset.train_idx
             else:
@@ -68,7 +79,7 @@ class BaseDataLoader(DataLoader):
             train_sampler = SubsetRandomSampler(train_idx)
             # use the balanced dataset sampler if balanced_data is set
             # this option can be passed to the dataset class
-            if (hasattr(self.dataset, 'balanced_data') and self.dataset.balanced_data):
+            if hasattr(self.dataset, "balanced_data") and self.dataset.balanced_data:
                 train_sampler = ImbalancedSampler(self.dataset, train_idx)
 
             valid_sampler = SubsetRandomSampler(valid_idx)
@@ -76,10 +87,12 @@ class BaseDataLoader(DataLoader):
         else:
             num_intervals = len(idx_full) // len_valid
             rand_i = np.random.randint(0, num_intervals)
-            valid_idx = idx_full[rand_i * len_valid: (rand_i + 1) * len_valid]
-            train_idx = np.delete(idx_full, np.arange(rand_i * len_valid, (rand_i + 1) * len_valid))
+            valid_idx = idx_full[rand_i * len_valid : (rand_i + 1) * len_valid]
+            train_idx = np.delete(
+                idx_full, np.arange(rand_i * len_valid, (rand_i + 1) * len_valid)
+            )
 
-            if (hasattr(self.dataset, 'valid_idx')):
+            if hasattr(self.dataset, "valid_idx"):
                 valid_idx = self.dataset.valid_idx
                 train_idx = self.dataset.train_idx
 

@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class MultiHeadAttn(nn.Module):
-    def __init__(self, n_head, d_model, d_head, dropout, dropatt=0,
-                 pre_lnorm=False):
+    def __init__(self, n_head, d_model, d_head, dropout, dropatt=0, pre_lnorm=False):
         super(MultiHeadAttn, self).__init__()
 
         self.n_head = n_head
@@ -40,23 +40,24 @@ class MultiHeadAttn(nn.Module):
         head_v = head_v.view(c.size(0), c.size(1), self.n_head, self.d_head)
 
         # [qlen x klen x bsz x n_head]
-        attn_score = torch.einsum('ibnd,jbnd->ijbn', (head_q, head_k))
+        attn_score = torch.einsum("ibnd,jbnd->ijbn", (head_q, head_k))
         attn_score.mul_(self.scale)
 
         if attn_mask is not None and attn_mask.any().item():
             if attn_mask.dim() == 2:
-                attn_score.masked_fill_(attn_mask[None,:,:,None], -float('inf'))
+                attn_score.masked_fill_(attn_mask[None, :, :, None], -float("inf"))
             elif attn_mask.dim() == 3:
-                attn_score.masked_fill_(attn_mask[:,:,:,None], -float('inf'))
+                attn_score.masked_fill_(attn_mask[:, :, :, None], -float("inf"))
 
         # [qlen x klen x bsz x n_head]
         attn_prob = F.softmax(attn_score, dim=1)
         attn_prob = self.dropatt(attn_prob)
 
         # [qlen x klen x bsz x n_head] + [klen x bsz x n_head x d_head] -> [qlen x bsz x n_head x d_head]
-        attn_vec = torch.einsum('ijbn,jbnd->ibnd', (attn_prob, head_v))
+        attn_vec = torch.einsum("ijbn,jbnd->ibnd", (attn_prob, head_v))
         attn_vec = attn_vec.contiguous().view(
-            attn_vec.size(0), attn_vec.size(1), self.n_head * self.d_head)
+            attn_vec.size(0), attn_vec.size(1), self.n_head * self.d_head
+        )
 
         ##### linear projection
         attn_out = self.o_net(attn_vec)

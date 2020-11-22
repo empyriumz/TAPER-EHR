@@ -1,7 +1,8 @@
 import json
 import logging
 
-logging.basicConfig(level=logging.INFO, format='')
+logging.basicConfig(level=logging.INFO, format="")
+
 
 class Logger:
     """
@@ -10,6 +11,7 @@ class Logger:
     Note:
         Used by BaseTrainer to save training history.
     """
+
     def __init__(self):
         self.entries = {}
 

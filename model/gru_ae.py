@@ -19,6 +19,7 @@ MAX_LENGTH = 30
 SOS_token = 0
 EOS_token = 1
 
+
 class EncoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, **kwargs):
         super(EncoderRNN, self).__init__()
@@ -28,7 +29,7 @@ class EncoderRNN(nn.Module):
         self.gru = nn.GRU(self.input_size, self.hidden_size)
 
     def forward(self, input, hidden, i_s, b_is):
-        if (len(input.shape) == 2):
+        if len(input.shape) == 2:
             input = input.unsqueeze(1)
 
         output = input
@@ -37,26 +38,26 @@ class EncoderRNN(nn.Module):
         output = output[i_s, b_is, :]
         output = F.relu(output)
 
-        if (len(output.shape) == 1):
+        if len(output.shape) == 1:
             output = output.unsqueeze(0).unsqueeze(1)
-        elif (len(output.shape) == 2):
+        elif len(output.shape) == 2:
             output = output.unsqueeze(0)
         return output
 
     def set_device(self, device):
         self.device = device
 
-
     def init_hidden(self, batch_size, device=None):
         self.batch_size = batch_size
-        if (hasattr(self, 'device')):
+        if hasattr(self, "device"):
             device = self.device
 
         return torch.zeros(1, batch_size, self.hidden_size, device=device)
 
     def init_from_state_dict(self, state_dict):
-        td = {k:v for k, v in self.named_parameters() if 'encoder.' + k in state_dict}
+        td = {k: v for k, v in self.named_parameters() if "encoder." + k in state_dict}
         self.load_state_dict(td)
+
 
 class DecoderRNN(nn.Module):
     def __init__(self, input_size, hidden_size, **kwargs):
@@ -81,16 +82,18 @@ class DecoderRNN(nn.Module):
     def set_device(self, device):
         self.device = device
 
-
     def init_hidden(self, batch_size, device=None):
         self.batch_size = batch_size
-        if (hasattr(self, 'device')):
+        if hasattr(self, "device"):
             device = self.device
 
         return torch.zeros(1, batch_size, self.hidden_size, device=device)
 
+
 class AttnDecoderRNN(nn.Module):
-    def __init__(self, hidden_size, output_size, dropout_p=0.1, max_length=MAX_LENGTH, **kwargs):
+    def __init__(
+        self, hidden_size, output_size, dropout_p=0.1, max_length=MAX_LENGTH, **kwargs
+    ):
         super(AttnDecoderRNN, self).__init__()
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -103,8 +106,10 @@ class AttnDecoderRNN(nn.Module):
         self.gru = nn.GRU(self.hidden_size, self.hidden_size)
         self.out = nn.Linear(self.hidden_size, self.output_size)
 
-    def forward(self, input, hidden):#encoder_outputs, hidden,  i_s, b_is):
-        outputs = torch.zeros((self.max_length, self.batch_size, self.output_size)).to(self.device)
+    def forward(self, input, hidden):  # encoder_outputs, hidden,  i_s, b_is):
+        outputs = torch.zeros((self.max_length, self.batch_size, self.output_size)).to(
+            self.device
+        )
         output = input
         for i in range(input.shape[0]):
             output, hidden = self.gru(output, hidden)
@@ -117,9 +122,10 @@ class AttnDecoderRNN(nn.Module):
 
     def init_hidden(self, batch_size, device=None):
         self.batch_size = batch_size
-        if (hasattr(self, 'device')):
+        if hasattr(self, "device"):
             device = self.device
         return torch.zeros(1, batch_size, self.hidden_size, device=device)
+
 
 class GRUAE(BaseModel):
     def __init__(self, input_size, hidden_size, teacher_forcing_ratio, **kwargs):

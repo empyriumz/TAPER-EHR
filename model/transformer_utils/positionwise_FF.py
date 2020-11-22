@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class PositionwiseFF(nn.Module):
     def __init__(self, d_model, d_inner, dropout, pre_lnorm=False):
         super(PositionwiseFF, self).__init__()
@@ -11,7 +12,8 @@ class PositionwiseFF(nn.Module):
         self.dropout = dropout
 
         self.CoreNet = nn.Sequential(
-            nn.Linear(d_model, d_inner), nn.ReLU(inplace=True),
+            nn.Linear(d_model, d_inner),
+            nn.ReLU(inplace=True),
             nn.Dropout(dropout),
             nn.Linear(d_inner, d_model),
             nn.Dropout(dropout),
@@ -36,5 +38,3 @@ class PositionwiseFF(nn.Module):
             output = self.layer_norm(inp + core_out)
 
         return output
-
-

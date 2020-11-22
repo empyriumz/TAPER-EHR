@@ -7,6 +7,7 @@ class BaseModel(nn.Module):
     """
     Base class for all models
     """
+
     def __init__(self):
         super(BaseModel, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -25,7 +26,7 @@ class BaseModel(nn.Module):
         """
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters])
-        self.logger.info('Trainable parameters: {}'.format(params))
+        self.logger.info("Trainable parameters: {}".format(params))
         self.logger.info(self)
 
     def __str__(self):
@@ -34,5 +35,7 @@ class BaseModel(nn.Module):
         """
         model_parameters = filter(lambda p: p.requires_grad, self.parameters())
         params = sum([np.prod(p.size()) for p in model_parameters if p is not None])
-        return super(BaseModel, self).__str__() + '\nTrainable parameters: {}'.format(params)
+        return super(BaseModel, self).__str__() + "\nTrainable parameters: {}".format(
+            params
+        )
         # print(super(BaseModel, self))

@@ -2,7 +2,7 @@
 /biobert_v1.1_pubmed/*
 /data/
 /model/bio_bert.pkl
-
+test.ipynb
 # macos
 .DS_Store
 

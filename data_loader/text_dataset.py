@@ -6,6 +6,7 @@ import numpy as np
 from data_loader.utils.vocab import Vocab
 import random
 
+
 class TextDataset(data.Dataset):
     def __init__(self, data_path, text, batch_size, train=True, split_num=1):
         super(TextDataset, self).__init__()
@@ -13,35 +14,40 @@ class TextDataset(data.Dataset):
         self.batch_size = batch_size
         self.train = train
 
-        self.data = pickle.load(open(os.path.join(data_path, 'data.pkl'), 'rb'))
-        self.data_info = self.data['info']
-        self.data = self.data['data']
-        data_split_path = os.path.join(data_path, 'splits', 'split_{}.pkl'.format(split_num))
-        if (os.path.exists(data_split_path)):
-            self.train_idx, self.valid_idx = pickle.load(open(data_split_path, 'rb'))
+        self.data = pickle.load(open(os.path.join(data_path, "data.pkl"), "rb"))
+        self.data_info = self.data["info"]
+        self.data = self.data["data"]
+        data_split_path = os.path.join(
+            data_path, "splits", "split_{}.pkl".format(split_num)
+        )
+        if os.path.exists(data_split_path):
+            self.train_idx, self.valid_idx = pickle.load(open(data_split_path, "rb"))
             self.train_data = self.create_dataset(text, self.train_idx)
             self.valid_data = self.create_dataset(text, self.valid_idx)
             self.train_idx = np.asarray(range(0, len(self.train_data)))
-            self.valid_idx = len(self.train_idx) + np.asarray(range(0, len(self.valid_data)))
+            self.valid_idx = len(self.train_idx) + np.asarray(
+                range(0, len(self.valid_data))
+            )
         else:
             self.train_data = self.create_dataset(text, self.data.keys())
-
-
 
     def create_dataset(self, text_type, keys):
         t = []
         for j, k in enumerate(keys):
             for i, v in enumerate(self.data[k]):
-                l = v['text_{}_len'.format(text_type)] // 512 + (int(v['text_{}_len'.format(text_type)] % 512 > 0))
-                if (l == 0):
+                l = v["text_{}_len".format(text_type)] // 512 + (
+                    int(v["text_{}_len".format(text_type)] % 512 > 0)
+                )
+                if l == 0:
                     continue
-                tt = (v['text_embedding_{}'.format(text_type)], l)
+                tt = (v["text_embedding_{}".format(text_type)], l)
                 t.append(tt)
         return t
 
     def __getitem__(self, index):
-        if (hasattr(self, 'train_idx') and index in self.train_idx) or \
-            (index < len(self.train_data)):
+        if (hasattr(self, "train_idx") and index in self.train_idx) or (
+            index < len(self.train_data)
+        ):
             d = self.train_data[index]
         else:
             d = self.valid_data[index - len(self.train_data)]
@@ -56,6 +62,7 @@ class TextDataset(data.Dataset):
 
     def __len__(self):
         return len(self.train_data)
+
 
 def collate_fn(data):
     x_text, i_s = zip(*data)
