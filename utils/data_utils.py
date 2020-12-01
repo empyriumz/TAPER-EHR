@@ -201,61 +201,33 @@ def preprocess_notes(text):
     return y
 
 
-def filter_diagnoses_codes(diagnoses, min_=5, max_=np.inf):
-    t = diagnoses.groupby("ICD9_CODE").ICD9_CODE.transform(len) > min_
-    num_codes = len(set(diagnoses["ICD9_CODE"]))
-    num_codes_after = len(set(diagnoses.loc[t, "ICD9_CODE"]))
+DataFrame = pd.DataFrame
+
+
+def filter_codes(df, code: str, min_=5, max_=np.inf) -> DataFrame:
+    t = df.groupby(code)[code].transform(len) > min_
+    num_codes = len(set(df[code]))
+    num_codes_after = len(set(df.loc[t, code]))
     print(
-        "removing diagnosis codes occuring less than {} times. \n num codes before filter: {} after filtering: {}".format(
-            min_, num_codes, num_codes_after
+        "removing {} codes occuring less than {} times. \n num codes before filter: {} after filtering: {}".format(
+            code, min_, num_codes, num_codes_after
         )
     )
-    return diagnoses[t]
+    return df[t]
 
 
-def filter_prescription_codes(med, min_=5, max_=np.inf):
-    t = med.groupby("NDC").NDC.transform(len) > min_
-    num_codes = len(set(med["NDC"]))
-    num_codes_after = len(set(med.loc[t, "NDC"]))
-    print(
-        "removing prescription codes occuring less than {} times. \n num codes before filter: {} after filtering: {}".format(
-            min_, num_codes, num_codes_after
-        )
-    )
-    return med[t]
-
-
-def filter_procedure_codes(procedures, min_=5, max_=np.inf):
-    t = procedures.groupby("ICD9_CODE").ICD9_CODE.transform(len) > min_
-    num_codes = len(set(procedures["ICD9_CODE"]))
-    num_codes_after = len(set(procedures.loc[t, "ICD9_CODE"]))
-    print(
-        "removing procedure codes occuring less than {} times. \n num codes before filter: {} after filtering: {}".format(
-            min_, num_codes, num_codes_after
-        )
-    )
-    return procedures[t]
-
-
-def merge_on_subject(t1, t2):
-    return t1.merge(t2, how="inner", left_on=["SUBJECT_ID"], right_on=["SUBJECT_ID"])
-
-
-def merge_on_subject_admission(t1, t2):
+def merge_on_subject(
+    t1,
+    t2,
+    how="left",
+    left_on=["SUBJECT_ID", "HADM_ID"],
+    right_on=["SUBJECT_ID", "HADM_ID"],
+):
     return t1.merge(
         t2,
-        how="inner",
-        left_on=["SUBJECT_ID", "HADM_ID"],
-        right_on=["SUBJECT_ID", "HADM_ID"],
-    )
-
-
-def merge_on_subject_admission_left(t1, t2):
-    return t1.merge(
-        t2,
-        how="left",
-        left_on=["SUBJECT_ID", "HADM_ID"],
-        right_on=["SUBJECT_ID", "HADM_ID"],
+        how=how,
+        left_on=left_on,
+        right_on=right_on,
     )
 
 

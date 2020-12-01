@@ -58,9 +58,10 @@ if __name__ == "__main__":
 
     df_adm = df_adm.sort_values(["SUBJECT_ID", "ADMITTIME"])
     df_adm = df_adm.reset_index(drop=True)
-    df_adm["NEXT_ADMITTIME"] = df_adm.groupby("SUBJECT_ID").ADMITTIME.shift(-1)
+    # one task in the paper is to predict re-admission within 30 days
+    df_adm["NEXT_ADMITTIME"] = df_adm.groupby("SUBJECT_ID").ADMITTIME.shift(periods=-1)
     df_adm["NEXT_ADMISSION_TYPE"] = df_adm.groupby("SUBJECT_ID").ADMISSION_TYPE.shift(
-        -1
+        periods=-1
     )
 
     rows = df_adm.NEXT_ADMISSION_TYPE == "ELECTIVE"
@@ -115,38 +116,41 @@ if __name__ == "__main__":
     # Adding clinical codes to dataset
 
     # add diagnoses
+    code = "ICD9_CODE"
     diagnoses = read_icd_diagnoses_table(args.path)
-    diagnoses = filter_diagnoses_codes(diagnoses)
-    diagnoses = group_by_return_col_list(
-        diagnoses, ["SUBJECT_ID", "HADM_ID"], "ICD9_CODE"
-    )
-
-    # add cptevents
-    cptevents = read_cptevents_table(args.path)
-    cptevents = filter_cptevents_codes(cptevents)
-    cptevents = group_by_return_col_list(cptevents, ["SUBJECT_ID", "HADM_ID"], "CPT_CD")
-
-    # add prescriptions
-    prescriptions = read_prescriptions_table(args.path)
-    prescriptions = filter_prescription_codes(prescriptions)
-    prescriptions = group_by_return_col_list(
-        prescriptions, ["SUBJECT_ID", "HADM_ID"], "NDC"
-    )
+    diagnoses = filter_codes(diagnoses, code=code)
+    diagnoses = group_by_return_col_list(diagnoses, ["SUBJECT_ID", "HADM_ID"], code)
 
     # add procedures
     procedures = read_icd_procedures_table(args.path)
-    procedures = filter_procedure_codes(procedures)
+    procedures = filter_codes(procedures, code=code)
     procedures = group_by_return_col_list(
-        procedures, ["SUBJECT_ID", "HADM_ID"], "ICD9_CODE", "ICD9_CODE_PROCEDURE"
+        procedures, ["SUBJECT_ID", "HADM_ID"], code, "ICD9_CODE_PROCEDURE"
+    )
+
+    # add cptevents
+    code = "CPT_CD"
+    cptevents = read_cptevents_table(args.path)
+    cptevents = filter_codes(cptevents, code=code)
+    cptevents = group_by_return_col_list(cptevents, ["SUBJECT_ID", "HADM_ID"], code)
+
+    # add prescriptions
+    code = "NDC"
+    prescriptions = read_prescriptions_table(args.path)
+    prescriptions = filter_codes(prescriptions, code=code)
+    prescriptions = group_by_return_col_list(
+        prescriptions, ["SUBJECT_ID", "HADM_ID"], code
     )
 
     stays = read_icustays_table(args.path)
 
-    stays = merge_on_subject(stays, patients)
-    stays = merge_on_subject_admission_left(stays, diagnoses)
-    stays = merge_on_subject_admission_left(stays, cptevents)
-    stays = merge_on_subject_admission_left(stays, prescriptions)
-    stays = merge_on_subject_admission_left(stays, procedures)
+    stays = merge_on_subject(
+        stays, patients, how="inner", left_on=["SUBJECT_ID"], right_on=["SUBJECT_ID"]
+    )
+    stays = merge_on_subject(stays, diagnoses)
+    stays = merge_on_subject(stays, cptevents)
+    stays = merge_on_subject(stays, prescriptions)
+    stays = merge_on_subject(stays, procedures)
     stays = add_age_to_icustays(stays)
 
     df_adm_notes = pd.merge(
