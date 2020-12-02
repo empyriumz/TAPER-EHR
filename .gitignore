@@ -3,6 +3,7 @@
 /data/
 /model/bio_bert.pkl
 test.ipynb
+pd-test.py
 # macos
 .DS_Store
 

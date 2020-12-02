@@ -177,18 +177,6 @@ def read_icd_diagnoses_table(path):
     return diagnoses
 
 
-def filter_cptevents_codes(cpt, min_=5, max_=np.inf):
-    t = cpt.groupby("CPT_CD").CPT_CD.transform(len) >= min_
-    num_codes = len(set(cpt["CPT_CD"]))
-    num_codes_after = len(set(cpt.loc[t, "CPT_CD"]))
-    print(
-        "removing cpt procedure codes occuring less than {} times. \n num codes before filter: {} after filtering: {}".format(
-            min_, num_codes, num_codes_after
-        )
-    )
-    return cpt[t]
-
-
 def preprocess_notes(text):
     y = re.sub(
         "\\[(.*?)\\]", "", text
@@ -203,8 +191,7 @@ def preprocess_notes(text):
 
 DataFrame = pd.DataFrame
 
-
-def filter_codes(df, code: str, min_=5, max_=np.inf) -> DataFrame:
+def filter_codes(df, code: str, min_=5) -> DataFrame:
     t = df.groupby(code)[code].transform(len) > min_
     num_codes = len(set(df[code]))
     num_codes_after = len(set(df.loc[t, code]))

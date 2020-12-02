@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     df_adm_notes = df_adm_notes[df_adm_notes["CATEGORY"] != "Discharge summary"]
 
-    ### If Less than n days on admission notes (Early notes)
+    ### If less than n days on admission notes (Early notes)
     def less_n_days_data(df_adm_notes, n):
         df_less_n = df_adm_notes[
             (
@@ -215,34 +215,32 @@ if __name__ == "__main__":
         y = re.sub("--|__|==", "", y)
         return y
 
-    def preprocessing(df_less_n):
-        df_less_n["TEXT"] = df_less_n["TEXT"].fillna(" ")
-        df_less_n["TEXT"] = df_less_n["TEXT"].str.replace("\n", " ")
-        df_less_n["TEXT"] = df_less_n["TEXT"].str.replace("\r", " ")
-        df_less_n["TEXT"] = df_less_n["TEXT"].apply(str.strip)
-        df_less_n["TEXT"] = df_less_n["TEXT"].str.lower()
-        df_less_n["TEXT"] = df_less_n["TEXT"].apply(lambda x: preprocess1(x))
-        df_less_n["TEXT"] = df_less_n["TEXT"].apply(lambda x: " ".join(x.split()))
-        return df_less_n
+    def preprocessing(df, col = 'TEXT'):
+        df[col] = df[col].fillna(" ")
+        df[col] = df[col].str.replace("\n", " ")
+        df[col] = df[col].str.replace("\r", " ")
+        df[col] = df[col].apply(str.strip)
+        df[col] = df[col].str.lower()
+        df[col] = df[col].apply(lambda x: preprocess1(x))
+        df[col] = df[col].apply(lambda x: " ".join(x.split()))
+        return df
 
     def append_text(df):
-        hadm_ids = set(df["HADM_ID"])
-        t_df = pd.DataFrame()
-        for hid in hadm_ids:
-            t = df[df["HADM_ID"] == hid]
-            t = t.sort_values("ADMITTIME")
-            td = t[t["CATEGORY"] == "Discharge summary"]
-            tr = t[t["CATEGORY"] != "Discharge summary"]
-            tr = " ".join(tr["TEXT"])
-            td = " ".join(td["TEXT"])
-            t = t.iloc[0]
-            t["TEXT_DISCHARGE"] = td
-            t["TEXT_REST"] = tr
-            t_df = t_df.append(t)
-
-        t_df["TEXT_DISCHARGE"] = t_df["TEXT_DISCHARGE"].astype(str)
-        t_df["TEXT_REST"] = t_df["TEXT_REST"].astype(str)
-        return t_df
+        group = df.groupby('HADM_ID')
+        df_list = []
+        for idx in group.groups.values():
+            tmp = df.loc[idx]
+            discharge = tmp[tmp["CATEGORY"] == "Discharge summary"]
+            rest = tmp[tmp["CATEGORY"] != "Discharge summary"]
+            discharge = " ".join(discharge["TEXT"])
+            rest = " ".join(rest["TEXT"])
+            tmp = tmp.iloc[0]
+            tmp['TEXT_DISCHARGE'] = discharge
+            tmp['TEXT_REST'] = rest
+            df_list.append(tmp)
+    
+        df = pd.concat(df_list, axis = 1)
+        return df.T
 
     df_less_1 = df_less_1.append(df_discharge).reset_index()
     df_less_1 = preprocessing(df_less_1)
@@ -250,8 +248,9 @@ if __name__ == "__main__":
     df_less_1 = compute_time_delta(df_less_1)
 
     df_less_2 = df_less_2.append(df_discharge).reset_index()
-    df_less_2 = compute_time_delta(preprocessing(df_less_2))
+    df_less_2 = preprocessing(df_less_2)
     df_less_2 = append_text(df_less_2)
+    df_less_2 = compute_time_delta(df_less_2)
 
     if not os.path.isdir(args.save):
         os.makedirs(args.save)
