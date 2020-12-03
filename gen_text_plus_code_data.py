@@ -209,8 +209,6 @@ def main():
         help="flag for including cpt codes",
     )
 
-    parser.add_argument("-ma", "--min_adm", default=0, type=int)
-
     args = parser.parse_args()
     df = pd.read_pickle(args.path)
     df_orig = df
@@ -227,7 +225,7 @@ def main():
     df = df[~df["ICD9_CODE"].isna()]  # drop patients with no icd9 code?
     df = df[~(df["TEXT_REST"].isna() | df["TEXT_REST"].isna())]
 
-    pids = list(set(df["SUBJECT_ID"].tolist()))
+    pids = list(set(df["SUBJECT_ID"]))
 
     # lambda
     demographic_cols = {
@@ -253,7 +251,7 @@ def main():
         df["LAST_CAREUNIT"]
     )
     df.loc[:, "GENDER"], demographic_cols["GENDER"] = pd.factorize(df["GENDER"])
-    df.loc[:, "AGE"] = df["AGE"].astype(int)
+    df["AGE"] = df["AGE"].astype(int)
     los_bins = [1, 2, 3, 4, 5, 6, 7, 8, 14, float("inf")]
     los_labels = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     df.loc[:, "LOS"] = pd.cut(df["LOS"], bins=los_bins, labels=los_labels)
