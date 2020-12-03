@@ -2,15 +2,10 @@ import pandas as pd
 import os
 from tqdm import tqdm
 from model.bert_things.pytorch_pretrained_bert.tokenization import BertTokenizer
-from model.bert_things.pytorch_pretrained_bert import (
-    BertConfig,
-    BertModel,
-    BertPreTrainedModel,
-)
+from model.bert_things.pytorch_pretrained_bert import BertConfig
 from model.bert_text_model import BertTextModel
 from data_loader.utils.vocab import Vocab
 import pickle
-import sys
 import logging
 import numpy as np
 import argparse
@@ -24,8 +19,8 @@ logging = logging.getLogger(
 
 def embed_text(text_codes, device, bert, bert_seq_length=512, max_seq_len_text=30):
     """
-    Embed text using the pretrained bert model, this is done to speed up training later (we keep the bert model fixed, you can explore
-    fine tuning bert model also for downstream tasks..)
+    Embed text using the pretrained bert model, this is done to speed up training later. 
+    We keep the bert model fixed, you can explore fine tuning bert model also for downstream tasks.
     Args:
 
         text_codes: tokenized text
@@ -232,11 +227,6 @@ def main():
     df = df[~df["ICD9_CODE"].isna()]  # drop patients with no icd9 code?
     df = df[~(df["TEXT_REST"].isna() | df["TEXT_REST"].isna())]
 
-    if "TIMEDELTA" in df.columns:
-        df["TIMEDELTA"] = df["TIMEDELTA"].fillna(pd.to_timedelta("0"))
-        df["TIMEDELTA"] = pd.to_timedelta(df["TIMEDELTA"])
-        df["TIMEDELTA"] = df["TIMEDELTA"].apply(lambda x: x.seconds)
-
     pids = list(set(df["SUBJECT_ID"].tolist()))
 
     # lambda
@@ -335,7 +325,6 @@ def main():
             data[pid] = []
 
             t = 0
-            hadm_ids = set(df["HADM_ID"])
             for i, r in pid_df.iterrows():
                 # filt notes prior to n days and concatenate them
                 # leave discharge summary seperate
@@ -347,10 +336,6 @@ def main():
                 )
                 icu_unit[r["LAST_CAREUNIT"]] = 1
                 demographics += list(icu_unit)
-
-                ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
-                ethnicity[r["ETHNICITY"]] = 1
-                demographics += list(ethnicity)
 
                 ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
                 ethnicity[r["ETHNICITY"]] = 1
@@ -375,7 +360,13 @@ def main():
 
                 if args.procedures:
                     proc_codes = r["ICD9_CODE_PROCEDURE"]
-
+                
+                # WTF, very weird if statement
+                # if args.procedures==False, proc_codes=np.nan
+                # then the following if statement is in fact false
+                # if args.procedures==True, proc_codes = something else
+                # then it will not be converted to short code
+                # and ptok is an empty list, so the mtok, ctok and dtok
                 if proc_codes == proc_codes:
                     ptok = proc_vocab.convert_to_ids(proc_codes, "P", args.short_code)
 
@@ -386,7 +377,7 @@ def main():
 
                 if med_codes == med_codes:
                     mtok = med_vocab.convert_to_ids(med_codes, "M")
-
+                
                 if args.cpts:
                     cpt_codes = r["CPT_CD"]
 
@@ -398,7 +389,7 @@ def main():
                 admit_data["medications"] = mtok
                 admit_data["cptproc"] = ctok
 
-                if r["TIMEDELTA"] == r["TIMEDELTA"]:
+                if r["TIMEDELTA"] == r["TIMEDELTA"]: # if TIMEDELTA not NaN?
                     t += r["TIMEDELTA"]
 
                 admit_data["timedelta"] = t
@@ -458,7 +449,7 @@ def main():
     if not os.path.exists(args.save):
         os.makedirs(args.save)
 
-    # temporarly save data incase something goes wrong ...
+    # temporarly save data in case something goes wrong ...
     try:
         with open(os.path.join(args.save, "data.pkl"), "wb") as handle:
             data_dict = {}

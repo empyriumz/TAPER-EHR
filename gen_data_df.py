@@ -143,14 +143,13 @@ if __name__ == "__main__":
     )
 
     stays = read_icustays_table(args.path)
+    stays = stays.merge(patients, how='inner', left_on=['SUBJECT_ID'], right_on=["SUBJECT_ID"])
+    cols = ["SUBJECT_ID", "HADM_ID"]
+    stays = stays.merge(diagnoses, how="left", left_on=cols, right_on=cols)
+    stays = stays.merge(cptevents, how="left", left_on=cols, right_on=cols)
+    stays = stays.merge(prescriptions, how="left", left_on=cols, right_on=cols)
+    stays = stays.merge(procedures, how="left", left_on=cols, right_on=cols)
 
-    stays = merge_on_subject(
-        stays, patients, how="inner", left_on=["SUBJECT_ID"], right_on=["SUBJECT_ID"]
-    )
-    stays = merge_on_subject(stays, diagnoses)
-    stays = merge_on_subject(stays, cptevents)
-    stays = merge_on_subject(stays, prescriptions)
-    stays = merge_on_subject(stays, procedures)
     stays = add_age_to_icustays(stays)
 
     df_adm_notes = pd.merge(

@@ -54,6 +54,9 @@ def compute_time_delta(df):
         .groupby(["SUBJECT_ID"])["ADMITTIME"]
         .diff()
     )
+    df["TIMEDELTA"] = df["TIMEDELTA"].fillna(pd.to_timedelta("0"))
+    df["TIMEDELTA"] = pd.to_timedelta(df["TIMEDELTA"])
+    df["TIMEDELTA"] = df["TIMEDELTA"].dt.total_seconds()
 
     return df
 
@@ -201,21 +204,6 @@ def filter_codes(df, code: str, min_=5) -> DataFrame:
         )
     )
     return df[t]
-
-
-def merge_on_subject(
-    t1,
-    t2,
-    how="left",
-    left_on=["SUBJECT_ID", "HADM_ID"],
-    right_on=["SUBJECT_ID", "HADM_ID"],
-):
-    return t1.merge(
-        t2,
-        how=how,
-        left_on=left_on,
-        right_on=right_on,
-    )
 
 
 def add_age_to_icustays(stays):
