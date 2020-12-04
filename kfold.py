@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import os
 import pickle
 import argparse
@@ -100,7 +99,9 @@ if __name__ == "__main__":
             pdb.set_trace()
 
     pids = np.asarray(list(data_data.keys()))
-    np.random.shuffle(pids)
+    rng = np.random.default_rng()
+    rng.shuffle(pids)
+    #np.random.shuffle(pids)
     kf = KFold(args.kfold, random_state=None, shuffle=False)
 
     if not os.path.isdir(args.save):

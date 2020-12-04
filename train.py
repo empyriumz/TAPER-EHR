@@ -1,8 +1,4 @@
 try:
-    import colored_traceback.always
-except:
-    pass
-try:
     import nni
 except:
     pass
@@ -14,7 +10,6 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 import model.mem_transformer as module_arch
-from tqdm import tqdm
 from utils import Logger
 import pickle
 import numpy as np
