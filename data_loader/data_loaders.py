@@ -14,7 +14,6 @@ from .classification_dataset import non_seq_collate_fn as non_seq_classification
 from base import BaseDataLoader
 
 import os
-import pickle
 
 
 class SeqCodeDataLoader(BaseDataLoader):

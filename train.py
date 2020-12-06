@@ -37,7 +37,6 @@ def mod_config(config, nni_params):
         return d
 
     for k, v in nni_params.items():
-
         if k in config:
             config[k] = v
             continue

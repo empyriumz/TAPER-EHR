@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torchvision.utils import make_grid
 from base import BaseTrainer
 from model.transformer_utils import init_weights
 
@@ -38,7 +37,6 @@ class SeqCodeTrainer(BaseTrainer):
             "log_step", int(np.sqrt(data_loader.batch_size))
         )
         self.loss = loss
-        wi = lambda x: init_weights.weights_init(x, config=self.config["model"])
         self.model.apply(init_weights.weights_init)
 
         self.code_loss = config["trainer"].get("code_loss", False)

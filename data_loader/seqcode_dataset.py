@@ -48,7 +48,6 @@ class SeqCodeDataset(data.Dataset):
             open(os.path.join(data_path, "proc_vocab.pkl"), "rb")
         )
 
-        self.keys = list(self.data.keys())
         self.keys = self._get_keys()
 
         self.max_len = self._findmax_len(self.keys)
@@ -94,9 +93,9 @@ class SeqCodeDataset(data.Dataset):
                 nc += 1
         return nc
 
-    def _findmax_len(self, keys):
+    def _findmax_len(self):
         m = 0
-        for k, v in self.data.items():
+        for v in self.data.values():
             if len(v) > m:
                 m = len(v)
         return m

@@ -88,19 +88,21 @@ def my_metric2(output, target, k=3):
             correct += torch.sum(pred[:, i] == target).item()
     return correct / len(target)
 
-
-def recall_k(output, target, mask, k=10, window=1):
+def recall_diag(output, target, mask, k=10, window=1):
     bsz = output.shape[0]
     idx = torch.arange(0, bsz, device=output.device)
 
     mask = mask.squeeze()
+    output = output[:, :232]
+    target = target[:, :232]
     for i in range(window):
         mi = mask[i + 1 :] * mask[: -i - 1]
         mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
+        tm = mi[: -i - 1]
+        im = mi[i + 1 :]
 
         target_mask = torch.masked_select(idx, tm)
         input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
         output = output[input_mask, :]
         output = output.float()
         target = target[target_mask, :]
@@ -113,380 +115,97 @@ def recall_k(output, target, mask, k=10, window=1):
             r = 0
     return r
 
+def recall(output, target, mask, k=10, window=1):
+    bsz = output.shape[0]
+    idx = torch.arange(0, bsz, device=output.device)
+
+    mask = mask.squeeze()
+    for i in range(window):
+        mi = mask[i + 1 :] * mask[: -i - 1]
+        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
+        tm = mi[: -i - 1]
+        im = mi[i + 1 :]
+
+        target_mask = torch.masked_select(idx, tm)
+        input_mask = torch.masked_select(idx, im)
+        output = output[input_mask, :]
+        output = output.float()
+        target = target[target_mask, :]
+        target = target.float()
+
+        _, tk = torch.topk(output, k)
+        tt = torch.gather(target, 1, tk)
+        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
+        if r != r:
+            r = 0
+    return r
+
+def recall_proc(output, target, mask, k=10, window=1):
+    bsz = output.shape[0]
+    idx = torch.arange(0, bsz, device=output.device)
+
+    mask = mask.squeeze()
+    output = output[:, 232:]
+    target = target[:, 232:]
+
+    for i in range(window):
+        mi = mask[i + 1 :] * mask[: -i - 1]
+        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
+        tm = mi[: -i - 1]
+        im = mi[i + 1 :]
+
+        target_mask = torch.masked_select(idx, tm)
+        input_mask = torch.masked_select(idx, im)
+        output = output[input_mask, :]
+        output = output.float()
+        target = target[target_mask, :]
+        target = target.float()
+
+        _, tk = torch.topk(output, k)
+        tt = torch.gather(target, 1, tk)
+        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
+        if r != r:
+            r = 0
+    return r
 
 def recall_10_diag(output, target, mask, k=10, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, :232]
-    target = target[:, :232]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_diag(output, target, mask, k=10, window=1)
 
 def recall_20_diag(output, target, mask, k=20, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, :232]
-    target = target[:, :232]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_diag(output, target, mask, k=20, window=1)
 
 def recall_30_diag(output, target, mask, k=30, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, :232]
-    target = target[:, :232]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_diag(output, target, mask, k=30, window=1)
 
 def recall_40_diag(output, target, mask, k=40, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, :232]
-    target = target[:, :232]
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_diag(output, target, mask, k=40, window=1)
 
 def recall_10_proc(output, target, mask, k=10, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, 232:]
-    target = target[:, 232:]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-
-        if r != r:
-            r = 0
-    return r
-
+    return recall_proc(output, target, mask, k=10, window=1)
 
 def recall_20_proc(output, target, mask, k=20, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, 232:]
-    target = target[:, 232:]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_proc(output, target, mask, k=20, window=1)
 
 def recall_30_proc(output, target, mask, k=30, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    output = output[:, 232:]
-    target = target[:, 232:]
-
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall_proc(output, target, mask, k=30, window=1)
 
 def recall_40_proc(output, target, mask, k=40, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
+    return recall_proc(output, target, mask, k=40, window=1)
 
-    mask = mask.squeeze()
-    output = output[:, 232:]
-    target = target[:, 232:]
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
-
-def recall_10(output, target, mask, k=10, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+def recall_10(output, target, mask, k=20, window=1):
+    return recall(output, target, mask, k=10, window=1)
 
 def recall_20(output, target, mask, k=20, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall(output, target, mask, k=20, window=1)
 
 def recall_30(output, target, mask, k=30, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall(output, target, mask, k=30, window=1)
 
 def recall_40(output, target, mask, k=40, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
-
+    return recall(output, target, mask, k=40, window=1)
 
 def recall_50(output, target, mask, k=50, window=1):
-    bsz = output.shape[0]
-    idx = torch.arange(0, bsz, device=output.device)
-
-    mask = mask.squeeze()
-    for i in range(window):
-        mi = mask[i + 1 :] * mask[: -i - 1]
-        mi = torch.nn.functional.pad(mi, (1 + i, 1 + i))
-        tm = mi[: -i - 1]
-        im = mi[i + 1 :]
-
-        target_mask = torch.masked_select(idx, tm)
-        input_mask = torch.masked_select(idx, im)
-        # ii = ii.long()
-        output = output[input_mask, :]
-        output = output.float()
-        target = target[target_mask, :]
-        target = target.float()
-
-        _, tk = torch.topk(output, k)
-        tt = torch.gather(target, 1, tk)
-        r = torch.mean(torch.sum(tt, dim=1) / (torch.sum(target, dim=1) + 1e-7))
-        if r != r:
-            r = 0
-    return r
+    return recall(output, target, mask, k=50, window=1)
 
 
 def specificity(output, target, t=0.5):

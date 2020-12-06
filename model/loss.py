@@ -57,7 +57,7 @@ def bce_loss(output, target, weight=[1.0, 1.0]):
 
 
 def med2vec_loss_transformer(
-    inputs, mask, probits, bce_loss, emb_w, ivec, jvec, window=1, eps=1.0e-8
+    inputs, mask, probits, bce_loss, emb_w, ivec, jvec, window=1
 ):
     """returns the med2vec loss"""
 
