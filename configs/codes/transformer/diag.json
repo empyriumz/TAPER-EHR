@@ -28,7 +28,7 @@
     "data_loader": {
         "type": "SeqCodeDataLoader",
         "args": {
-            "data_dir": "./data/textcode/biobert_pubmed",
+            "data_dir": "./data/output",
             "batch_size": 32,
             "shuffle": true,
             "validation_split": 0.10,
