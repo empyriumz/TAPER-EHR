@@ -50,7 +50,7 @@ class SeqCodeDataset(data.Dataset):
 
         self.keys = self._get_keys()
 
-        self.max_len = self._findmax_len(self.keys)
+        self.max_len = self._findmax_len()
 
         self.num_dcodes = len(self.diag_vocab)
         self.num_pcodes = len(self.proc_vocab)
