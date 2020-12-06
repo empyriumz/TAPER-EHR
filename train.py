@@ -9,10 +9,7 @@ import torch
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
-import model.mem_transformer as module_arch
 from utils import Logger
-import pickle
-import numpy as np
 
 
 def get_instance(module, name, config, *args):
@@ -113,7 +110,7 @@ if __name__ == "__main__":
         "--device",
         default=None,
         type=str,
-        help="indices of GPUs to enable (default: all)",
+        help="indices of GPUs to enable (default: None)",
     )
     args = parser.parse_args()
 
@@ -130,9 +127,9 @@ if __name__ == "__main__":
             "Configuration file need to be specified. Add '-c config.json', for example."
         )
 
-    # if args.device:
-    #    os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-    # torch.set_default_tensor_type(torch.cuda.FloatTensor if args.device else torch.FloatTensor)
+    if args.device:
+       os.environ["CUDA_VISIBLE_DEVICES"] = args.device
+    torch.set_default_tensor_type(torch.cuda.FloatTensor if args.device else torch.FloatTensor)
     params = {}
     try:
         params = nni.get_next_parameter()
