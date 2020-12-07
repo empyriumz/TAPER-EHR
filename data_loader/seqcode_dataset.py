@@ -115,6 +115,8 @@ class SeqCodeDataset(data.Dataset):
         x = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
         d = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.long)
         mask = torch.zeros((self.max_len,), dtype=torch.long)
+        ivec = []
+        jvec = []
         for i, s in enumerate(seq):
             l = [
                  s["diagnoses"] * self.diag, 
@@ -125,12 +127,17 @@ class SeqCodeDataset(data.Dataset):
             
             demo = s["demographics"]
             merged = list(itertools.chain.from_iterable(l))
-            
+            for j in merged:
+                for k in merged:
+                    if j == k:
+                        continue
+                    ivec.append(j)
+                    jvec.append(k)
             x[merged, i] = 1
             d[:, i] = torch.Tensor(demo)
             mask[i] = 1
 
-        return x.t(), mask, d.t()
+        return x.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), d.t()
 
 
 def collate_fn(data):
@@ -147,8 +154,10 @@ def collate_fn(data):
         ivec: long vector
         jvec: long vector
     """
-    x, m, demo = zip(*data)
+    x, m, ivec, jvec, demo = zip(*data)
     m = torch.stack(m, dim=1)
     x = torch.stack(x, dim=1) 
+    ivec = torch.cat(ivec, dim=0)
+    jvec = torch.cat(jvec, dim=0)
     demo = torch.stack(demo, dim=1)
-    return x, m, demo
+    return x, m, ivec, jvec, demo
