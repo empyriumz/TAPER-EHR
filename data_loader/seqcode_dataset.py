@@ -129,7 +129,6 @@ class SeqCodeDataset(data.Dataset):
             x[merged, i] = 1
             d[:, i] = torch.Tensor(demo)
             mask[i] = 1
-            print(merged)
 
         return x.t(), mask, d.t()
 
@@ -148,10 +147,8 @@ def collate_fn(data):
         ivec: long vector
         jvec: long vector
     """
-    x, m, ivec, jvec, demo = zip(*data)
+    x, m, demo = zip(*data)
     m = torch.stack(m, dim=1)
-    x = torch.stack(x, dim=1)
-    ivec = torch.cat(ivec, dim=0)
-    jvec = torch.cat(jvec, dim=0)
+    x = torch.stack(x, dim=1) 
     demo = torch.stack(demo, dim=1)
-    return x, m, ivec, jvec, demo
+    return x, m, demo
