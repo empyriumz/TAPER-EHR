@@ -131,7 +131,7 @@ class ClassificationDataset(data.Dataset):
         tr = []
         te = []
 
-        lens = sorted([len(v) for k, v in ind_idx.items()])
+        lens = sorted([len(v) for v in ind_idx.values()])
 
         if len(lens) > 3:
             num_samples = lens[-2]
@@ -194,7 +194,7 @@ class ClassificationDataset(data.Dataset):
         return x
 
     def _get_text_dim(self, data):
-        for k, v in data.items():
+        for v in data.values():
             for vv in v:
                 x_text = torch.Tensor(vv["text_embedding_{}".format(self.text)])
                 if len(x_text.size()):

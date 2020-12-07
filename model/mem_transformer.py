@@ -80,7 +80,7 @@ class MemTransformerLM(BaseModel):
 
         self.clamp_len = clamp_len
         self.layers = nn.ModuleList()
-        for i in range(n_layer):
+        for _ in range(n_layer):
             self.layers.append(
                 DecoderLayer(
                     n_head,
@@ -102,7 +102,7 @@ class MemTransformerLM(BaseModel):
         weights_init(self)
 
     def _forward(self, dec_inp):
-        qlen, bsz, _ = dec_inp.size()
+        qlen, _, _ = dec_inp.size()
         word_emb = self.word_emb(dec_inp)
         klen = qlen
         # decoder attention mask

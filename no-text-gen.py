@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 from tqdm import tqdm
 from data_loader.utils.vocab import Vocab
@@ -141,11 +142,25 @@ def main():
                 admit_data = {}
                 demographics = [
                     r["AGE"],
-                    r["GENDER"],
-                    r["MARITAL_STATUS"],
-                    r["LAST_CAREUNIT"],
-                    r["ETHNICITY"],
+                    r["GENDER"]
                 ]
+                # one-hot encoding for MARITAL, LAST_CAREUNIT and ETHNICITY
+                marital_status = np.zeros(
+                    (demographic_cols["MARITAL_STATUS"].size,), dtype=int
+                )
+                marital_status[r["MARITAL_STATUS"]] = 1
+                demographics += list(marital_status)
+                
+                icu_unit = np.zeros(
+                    (demographic_cols["LAST_CAREUNIT"].size,), dtype=int
+                )
+                icu_unit[r["LAST_CAREUNIT"]] = 1
+                demographics += list(icu_unit)
+                
+                ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
+                ethnicity[r["ETHNICITY"]] = 1
+                demographics += list(ethnicity)
+                
                 admit_data["demographics"] = demographics
                 if args.diagnoses:
                     diagnosis_codes = r["ICD9_CODE"]
