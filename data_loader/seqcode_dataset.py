@@ -72,7 +72,7 @@ class SeqCodeDataset(data.Dataset):
             v = self.data[k]
             if len(v) < min_adm:
                 continue
-            for i, vv in enumerate(v):
+            for i, _ in enumerate(v):
                 idx.append((k, i))
         return idx
 

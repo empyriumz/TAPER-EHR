@@ -33,9 +33,9 @@
             "shuffle": true,
             "validation_split": 0.10,
             "num_workers": 1,
-            "med": true,
+            "med": false,
             "cptcode": true,
-            "proc": true,
+            "proc": false,
             "diag": true,
             "split_num": 0
         }

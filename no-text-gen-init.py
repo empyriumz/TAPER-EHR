@@ -124,4 +124,3 @@ if __name__ == "__main__":
     
     
     df_partial.to_pickle(os.path.join(args.save, "no_text_data.pkl"))
-    df_adm.to_pickle(os.path.join(args.save, "no_text_data_all.pkl"))

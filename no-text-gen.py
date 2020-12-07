@@ -11,7 +11,7 @@ def main():
     """
 
     Will generate a dictionary as follows:
-        <key> patientid : <value> lsit of dicts, where each dict contains admission data
+        <key> patientid : <value> list of dicts, where each dict contains admission data
                                   [
                                   {<key> feature/label name : <value> feature/label value}
                                   ]
