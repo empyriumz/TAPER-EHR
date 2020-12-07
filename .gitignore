@@ -4,6 +4,7 @@
 /model/bio_bert.pkl
 test.ipynb
 pd-test.py
+code_review.txt
 # macos
 .DS_Store
 

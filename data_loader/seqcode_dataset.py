@@ -2,8 +2,7 @@ import torch
 import torch.utils.data as data
 import os
 import pickle
-import numpy as np
-
+import itertools
 
 class SeqCodeDataset(data.Dataset):
     def __init__(
@@ -84,15 +83,6 @@ class SeqCodeDataset(data.Dataset):
             keys.append(k)
         return keys
 
-    def _find_num_tokens(self, ext="D"):
-        nc = 0
-        for k in self.vocab.sym2idx.keys():
-            t = k.split("_")
-            tt = t[0]
-            if tt == ext:
-                nc += 1
-        return nc
-
     def _findmax_len(self):
         m = 0
         for v in self.data.values():
@@ -111,60 +101,37 @@ class SeqCodeDataset(data.Dataset):
         return x  # , ivec, jvec
 
     def preprocess(self, seq):
-        """create one hot vector of idx in seq, with length self.num_codes
+        """create one hot vector of for the corresponding codes
 
         Args:
-            seq: list of ideces where code should be 1
+            seq: list of medical codes and demographic info
 
         Returns:
-            x: one hot vector
-            ivec: vector for learning code representation
-            jvec: vector for learning code representation
+            x: one-hot encoded vector
+            mask: unknown
+            d: one-hot encoded demographic info
         """
 
         x = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
-        d = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.float)
-        mask = torch.zeros((self.max_len,), dtype=torch.float)
-        ivec = []
-        jvec = []
-
+        d = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.long)
+        mask = torch.zeros((self.max_len,), dtype=torch.long)
         for i, s in enumerate(seq):
-            dcode = list(s["diagnoses"]) * self.diag
-            pcode = (
-                list(len(self.diag_vocab) * self.diag + np.asarray(s["procedures"]))
-                * self.proc
-            )
-            mcode = (
-                list(
-                    len(self.diag_vocab) * self.diag
-                    + len(self.proc_vocab) * self.proc
-                    + np.asarray(s["medications"])
-                )
-                * self.med
-            )
-            cptcode = (
-                list(
-                    len(self.diag_vocab) * self.diag
-                    + len(self.proc_vocab) * self.proc
-                    + len(self.cpt_vocab) * self.cpt
-                    + np.asarray(s["cptproc"])
-                )
-                * self.cpt
-            )
+            l = [
+                 s["diagnoses"] * self.diag, 
+                 s["procedures"] * self.proc, 
+                 s["medications"] * self.med, 
+                 s["cptproc"] * self.cpt
+            ]
+            
             demo = s["demographics"]
-            ss = (dcode) + (pcode) + (mcode) + (cptcode)
-
-            for j in ss:
-                for k in ss:
-                    if j == k:
-                        continue
-                ivec.append(j)  # torch.cat(ivec, i)
-                jvec.append(k)  # torch.cat(jvec, j)
-            x[ss, i] = 1
+            merged = list(itertools.chain.from_iterable(l))
+            
+            x[merged, i] = 1
             d[:, i] = torch.Tensor(demo)
             mask[i] = 1
+            print(merged)
 
-        return x.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), d.t()
+        return x.t(), mask, d.t()
 
 
 def collate_fn(data):
@@ -188,13 +155,3 @@ def collate_fn(data):
     jvec = torch.cat(jvec, dim=0)
     demo = torch.stack(demo, dim=1)
     return x, m, ivec, jvec, demo
-
-data_path = "data/output"
-batch_size = 32
-data = SeqCodeDataset(data_path,
-                      batch_size,
-                      med = False,
-                      diag = True,
-                      proc = False,
-                      cptcode = True)
-x, mask, ivec, jvec, d = data[3]

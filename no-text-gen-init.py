@@ -119,8 +119,7 @@ if __name__ == "__main__":
     df_adm = compute_time_delta(df_adm)
     # only retain the first row for each HADM ID
     df_partial = df_adm.groupby("HADM_ID").first()
+    
     if not os.path.isdir(args.save):
         os.makedirs(args.save)
-    
-    
     df_partial.to_pickle(os.path.join(args.save, "no_text_data.pkl"))
