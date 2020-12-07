@@ -1,12 +1,6 @@
-import json
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.bert_things.pytorch_pretrained_bert import (
-    BertConfig,
-    BertModel,
-    BertPreTrainedModel,
-)
 from base import BaseModel
 from model.mem_transformer import MemTransformerLM
 from model.gru_ae import *

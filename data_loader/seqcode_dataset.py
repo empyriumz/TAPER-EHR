@@ -188,3 +188,13 @@ def collate_fn(data):
     jvec = torch.cat(jvec, dim=0)
     demo = torch.stack(demo, dim=1)
     return x, m, ivec, jvec, demo
+
+data_path = "data/output"
+batch_size = 32
+data = SeqCodeDataset(data_path,
+                      batch_size,
+                      med = False,
+                      diag = True,
+                      proc = False,
+                      cptcode = True)
+x, mask, ivec, jvec, d = data[3]
