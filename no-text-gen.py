@@ -122,13 +122,8 @@ def main():
             diag_vocab._build_from_file(os.path.join(args.vocab_path, "diag.vocab"))
         if args.cpts:
             cpt_vocab._build_from_file(os.path.join(args.vocab_path, "cpt.vocab"))
-        # if (args.procedures):
-        #    proc_vocab._build_from_file(os.path.join(args.vocab_path, 'proc.vocab'))
-        # if (args.med):
-        # med_vocab._build_from_file(os.path.join(args.vocab_path, 'med.vocab'))
 
     data = {}
-
     pids = list(set(df["SUBJECT_ID"]))
     try:
         for pid in tqdm(pids):
@@ -160,45 +155,23 @@ def main():
 
                 admit_data["demographics"] = demographics
                 if args.diagnoses:
-                    diagnosis_codes = r["ICD9_CODE"]
-                    try:
-                        dtok = diag_vocab.convert_to_ids(
-                            diagnosis_codes, "D", short_icd9=args.short_code
-                        )
-                    except:
-                        dtok = [0]
+                    diag_short = r["ICD9_CODE"][:3]
+                    
 
                 if args.procedures:
                     proc_codes = r["ICD9_CODE_PROCEDURE"]
-                    try:
-                        ptok = proc_vocab.convert_to_ids(
-                            proc_codes, "P", short_icd9=args.short_code
-                        )
-                    except:
-                        ptok = [0]
-
+                    proc_short = proc_codes
+        
                 if args.medications:
                     med_codes = r["NDC"]
-                    try:
-                        mtok = med_vocab.convert_to_ids(
-                            med_codes, "M", short_icd9=args.short_code
-                        )
-                    except:
-                        mtok = [0]
 
                 if args.cpts:
                     cpt_codes = r["CPT_CD"]
-                    try:
-                        ctok = cpt_vocab.convert_to_ids(
-                            cpt_codes, "C", short_icd9=args.short_code
-                        )
-                    except:
-                        ctok = [0]
 
-                admit_data["diagnoses"] = dtok
-                admit_data["procedures"] = ptok
-                admit_data["medications"] = mtok
-                admit_data["cptproc"] = ctok
+                admit_data["diagnoses"] = diag_short
+                admit_data["procedures"] = proc_short
+                admit_data["medications"] = med_codes
+                admit_data["cptproc"] = cpt_codes
 
                 time += r["TIMEDELTA"]
                 admit_data["timedelta"] = time

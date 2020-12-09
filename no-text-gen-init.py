@@ -123,3 +123,4 @@ if __name__ == "__main__":
     if not os.path.isdir(args.save):
         os.makedirs(args.save)
     df_partial.to_pickle(os.path.join(args.save, "no_text_data.pkl"))
+    df_adm.to_pickle(os.path.join(args.save, "no_text_data_all.pkl"))

@@ -2,7 +2,6 @@ import torch
 import torch.utils.data as data
 import os
 import pickle
-import itertools
 
 class SeqCodeDataset(data.Dataset):
     def __init__(
@@ -13,18 +12,16 @@ class SeqCodeDataset(data.Dataset):
         med=False,
         diag=False,
         proc=False,
-        cptcode=False,
-        split_num=1,
+        split_num=2,
     ):
         self.proc = proc
         self.med = med
         self.diag = diag
-        self.cpt = cptcode
-
+        
         self.train = train
         self.batch_size = batch_size
 
-        self.data = pickle.load(open(os.path.join(data_path, "data.pkl"), "rb"))
+        self.data = pickle.load(open(os.path.join(data_path, "data_icd.pkl"), "rb"))
         self.data_info = self.data["info"]
         self.data = self.data["data"]
 
@@ -34,33 +31,16 @@ class SeqCodeDataset(data.Dataset):
         if os.path.exists(data_split_path):
             self.train_idx, self.valid_idx = pickle.load(open(data_split_path, "rb"))
 
-        self.diag_vocab = pickle.load(
-            open(os.path.join(data_path, "diag_vocab.pkl"), "rb")
-        )
-        self.med_vocab = pickle.load(
-            open(os.path.join(data_path, "med_vocab.pkl"), "rb")
-        )
-        self.cpt_vocab = pickle.load(
-            open(os.path.join(data_path, "cpt_vocab.pkl"), "rb")
-        )
-        self.proc_vocab = pickle.load(
-            open(os.path.join(data_path, "proc_vocab.pkl"), "rb")
-        )
-
         self.keys = self._get_keys()
 
         self.max_len = self._findmax_len()
 
-        self.num_dcodes = len(self.diag_vocab)
-        self.num_pcodes = len(self.proc_vocab)
-        self.num_mcodes = len(self.med_vocab)
-        self.num_ccodes = len(self.cpt_vocab)
-
+        self.num_dcodes = self.data_info['num_icd9_codes']
+        self.num_pcodes = self.data_info['num_proc_codes']
+    
         self.num_codes = (
             self.diag * self.num_dcodes
-            + self.cpt * self.num_ccodes
             + self.proc * self.num_pcodes
-            + self.med * self.num_mcodes
         )
 
         self.demographics_shape = self.data_info["demographics_shape"]
@@ -98,47 +78,41 @@ class SeqCodeDataset(data.Dataset):
 
     def __getitem__(self, k):
         x = self.preprocess(self.data[k])
-        return x  # , ivec, jvec
+        return x
 
+    
     def preprocess(self, seq):
-        """create one hot vector of for the corresponding codes
+        """create one hot vector of idx in seq, with length self.num_codes
 
         Args:
-            seq: list of medical codes and demographic info
+            seq: list of ideces where code should be 1
 
         Returns:
-            x: one-hot encoded vector
-            mask: unknown
-            d: one-hot encoded demographic info
+            x: one hot vector
+            ivec: vector for learning code representation
+            jvec: vector for learning code representation
         """
 
-        x = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
-        d = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.long)
+        icd_one_hot = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
+        demo_one_hot = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.long)
         mask = torch.zeros((self.max_len,), dtype=torch.long)
         ivec = []
         jvec = []
         for i, s in enumerate(seq):
-            l = [
-                 s["diagnoses"] * self.diag, 
-                 s["procedures"] * self.proc, 
-                 s["medications"] * self.med, 
-                 s["cptproc"] * self.cpt
-            ]
-            
+            icd = s['icd']
             demo = s["demographics"]
-            merged = list(itertools.chain.from_iterable(l))
-            for j in merged:
-                for k in merged:
+            icd_one_hot[icd, i] = 1
+            demo_one_hot[:, i] = torch.Tensor(demo)
+            mask[i] = 1
+            for j in icd:
+                for k in icd:
                     if j == k:
                         continue
                     ivec.append(j)
                     jvec.append(k)
-            x[merged, i] = 1
-            d[:, i] = torch.Tensor(demo)
-            mask[i] = 1
-
-        return x.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), d.t()
-
+            print(icd)
+                
+        return icd_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), demo_one_hot.t()
 
 def collate_fn(data):
     """Creates mini-batch from x, ivec, jvec tensors
