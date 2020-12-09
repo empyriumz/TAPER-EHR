@@ -154,24 +154,30 @@ def main():
                 demographics += list(ethnicity)
 
                 admit_data["demographics"] = demographics
+                dtok, ptok, mtok, ctok = [], [], [], []
                 if args.diagnoses:
-                    diag_short = r["ICD9_CODE"][:3]
+                    diagnosis_codes = r["ICD9_CODE"]
+                    dtok = diag_vocab.convert_to_ids(
+                        diagnosis_codes, "D", args.short_code
+                    )
+                    #diag_short = r["ICD9_CODE"][:3]
                     
-
                 if args.procedures:
                     proc_codes = r["ICD9_CODE_PROCEDURE"]
-                    proc_short = proc_codes
+                    ptok = proc_vocab.convert_to_ids(proc_codes, "P", args.short_code)
         
                 if args.medications:
                     med_codes = r["NDC"]
+                    mtok = med_vocab.convert_to_ids(med_codes, "M")
 
                 if args.cpts:
                     cpt_codes = r["CPT_CD"]
+                    ctok = cpt_vocab.convert_to_ids(cpt_codes, "C")
 
-                admit_data["diagnoses"] = diag_short
-                admit_data["procedures"] = proc_short
-                admit_data["medications"] = med_codes
-                admit_data["cptproc"] = cpt_codes
+                admit_data["diagnoses"] = dtok
+                admit_data["procedures"] = ptok
+                admit_data["medications"] = mtok
+                admit_data["cptproc"] = ctok
 
                 time += r["TIMEDELTA"]
                 admit_data["timedelta"] = time

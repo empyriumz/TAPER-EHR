@@ -208,6 +208,8 @@ if __name__ == "__main__":
     num_proc_codes = len(set(flatten(df_adm["ICD9_PROC_SHORT"].dropna())))
     data_info["num_icd9_codes"] = num_icd9_codes
     data_info["num_proc_codes"] = num_proc_codes
+    data_info["num_med_codes"] = 0
+    data_info["num_cpt_codes"] = 0
     data_info["demographics_shape"] = len(data[pids[0]][0]["demographics"])
     data_info["demographic_cols"] = demographic_cols
     
