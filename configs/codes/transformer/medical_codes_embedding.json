@@ -9,7 +9,7 @@
         "init_std": 0.02, 
         "proj_init_std": 0.01,
         "args": {
-            "n_token": 807,
+            "n_token": 809,
             "n_layer": 2,
             "d_model": 256,
             "n_head": 8,

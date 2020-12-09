@@ -101,7 +101,6 @@ class SeqCodeDataset(data.Dataset):
         ivec = []
         jvec = []
         for i, s in enumerate(seq):
-            icd = s['icd']
             demo = s["demographics"]
             l = [
                  s["diagnoses"] * self.diag, 
@@ -118,8 +117,6 @@ class SeqCodeDataset(data.Dataset):
                         continue
                     ivec.append(j)
                     jvec.append(k)
-            print(icd)
-                
         return icd_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), demo_one_hot.t()
 
 def collate_fn(data):
