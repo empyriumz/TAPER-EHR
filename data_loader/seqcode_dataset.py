@@ -2,6 +2,7 @@ import torch
 import torch.utils.data as data
 import os
 import pickle
+import itertools
 
 class SeqCodeDataset(data.Dataset):
     def __init__(
@@ -101,6 +102,12 @@ class SeqCodeDataset(data.Dataset):
         for i, s in enumerate(seq):
             icd = s['icd']
             demo = s["demographics"]
+            l = [
+                 s["diagnoses"] * self.diag, 
+                 s["procedures"] * self.proc
+            ]
+            icd = list(itertools.chain.from_iterable(l))
+            
             icd_one_hot[icd, i] = 1
             demo_one_hot[:, i] = torch.Tensor(demo)
             mask[i] = 1

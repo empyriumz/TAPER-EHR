@@ -11,7 +11,7 @@ def main():
     """
 
     Will generate a dictionary as follows:
-        <key> patientid : <value> list of dicts, where each dict contains admission data
+        <key> patientid : <value> lsit of dicts, where each dict contains admission data
                                   [
                                   {<key> feature/label name : <value> feature/label value}
                                   ]
@@ -122,8 +122,13 @@ def main():
             diag_vocab._build_from_file(os.path.join(args.vocab_path, "diag.vocab"))
         if args.cpts:
             cpt_vocab._build_from_file(os.path.join(args.vocab_path, "cpt.vocab"))
+        # if (args.procedures):
+        #    proc_vocab._build_from_file(os.path.join(args.vocab_path, 'proc.vocab'))
+        # if (args.med):
+        # med_vocab._build_from_file(os.path.join(args.vocab_path, 'med.vocab'))
 
     data = {}
+        
     pids = list(set(df["SUBJECT_ID"]))
     try:
         for pid in tqdm(pids):
@@ -135,50 +140,63 @@ def main():
                 # filt notes prior to n days and concatenate them
                 # leave discharge summary seperate
                 admit_data = {}
-                demographics = [r["AGE"], r["GENDER"]]
+                demographics = [
+                    r["AGE"],
+                    r["GENDER"]
+                ]
                 # one-hot encoding for MARITAL, LAST_CAREUNIT and ETHNICITY
                 marital_status = np.zeros(
                     (demographic_cols["MARITAL_STATUS"].size,), dtype=int
                 )
                 marital_status[r["MARITAL_STATUS"]] = 1
                 demographics += list(marital_status)
-
+                
                 icu_unit = np.zeros(
                     (demographic_cols["LAST_CAREUNIT"].size,), dtype=int
                 )
                 icu_unit[r["LAST_CAREUNIT"]] = 1
                 demographics += list(icu_unit)
-
+                
                 ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
                 ethnicity[r["ETHNICITY"]] = 1
                 demographics += list(ethnicity)
-
+                
                 admit_data["demographics"] = demographics
-                dtok, ptok, mtok, ctok = [], [], [], []
                 if args.diagnoses:
                     diagnosis_codes = r["ICD9_CODE"]
-                    dtok = diag_vocab.convert_to_ids(
-                        diagnosis_codes, "D", args.short_code
-                    )
-                    #diag_short = r["ICD9_CODE"][:3]
-                    
+                    try:
+                        dtok = diag_vocab.convert_to_ids(diagnosis_codes, "D", True)
+                    except:
+                        dtok = []
+
                 if args.procedures:
                     proc_codes = r["ICD9_CODE_PROCEDURE"]
-                    ptok = proc_vocab.convert_to_ids(proc_codes, "P", args.short_code)
-        
+                    try:
+                        ptok = proc_vocab.convert_to_ids(
+                            proc_codes, "P", short_icd9=True
+                        )
+                    except:
+                        ptok = []
+
                 if args.medications:
                     med_codes = r["NDC"]
-                    mtok = med_vocab.convert_to_ids(med_codes, "M")
+                    try:
+                        mtok = med_vocab.convert_to_ids(med_codes, "M", short_icd9=True)
+                    except:
+                        mtok = []
 
                 if args.cpts:
                     cpt_codes = r["CPT_CD"]
-                    ctok = cpt_vocab.convert_to_ids(cpt_codes, "C")
+                    try:
+                        ctok = cpt_vocab.convert_to_ids(cpt_codes, "C", short_icd9=True)
+                    except:
+                        ctok = []
 
                 admit_data["diagnoses"] = dtok
                 admit_data["procedures"] = ptok
                 admit_data["medications"] = mtok
                 admit_data["cptproc"] = ctok
-
+                
                 time += r["TIMEDELTA"]
                 admit_data["timedelta"] = time
                 admit_data["los"] = r["LOS"]
@@ -200,7 +218,7 @@ def main():
 
     data_info = {}
     data_info["num_patients"] = len(pids)
-
+ 
     if args.diagnoses:
         num_icd9_codes = len(set(flatten(df_orig["ICD9_CODE"].dropna())))
         data_info["num_icd9_codes"] = num_icd9_codes
@@ -237,7 +255,6 @@ def main():
         pickle.dump(med_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open(os.path.join(args.save, "proc_vocab.pkl"), "wb") as handle:
         pickle.dump(proc_vocab, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
 
 if __name__ == "__main__":
     main()
