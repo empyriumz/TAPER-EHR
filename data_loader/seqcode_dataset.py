@@ -11,6 +11,7 @@ class SeqCodeDataset(data.Dataset):
         batch_size,
         train=True,
         med=False,
+        cpt=False,
         diag=False,
         proc=False,
         split_num=2,
@@ -18,7 +19,7 @@ class SeqCodeDataset(data.Dataset):
         self.proc = proc
         self.med = med
         self.diag = diag
-        
+        self.cpt = cpt 
         self.train = train
         self.batch_size = batch_size
 

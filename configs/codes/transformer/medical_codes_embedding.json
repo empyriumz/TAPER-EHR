@@ -9,7 +9,7 @@
         "init_std": 0.02, 
         "proj_init_std": 0.01,
         "args": {
-            "n_token": 554,
+            "n_token": 807,
             "n_layer": 2,
             "d_model": 256,
             "n_head": 8,
@@ -34,8 +34,8 @@
             "validation_split": 0.10,
             "num_workers": 1,
             "med": false,
-            "cptcode": true,
-            "proc": false,
+            "cpt": false,
+            "proc": true,
             "diag": true,
             "split_num": 0
         }
