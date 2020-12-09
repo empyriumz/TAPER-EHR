@@ -204,8 +204,8 @@ if __name__ == "__main__":
     
     data_info = {}
     data_info["num_patients"] = len(pids)
-    num_icd9_codes = len(set(flatten(df_adm["ICD9_SHORT"].dropna())))
-    num_proc_codes = len(set(flatten(df_adm["ICD9_PROC_SHORT"].dropna())))
+    num_icd9_codes = len(set(flatten(diagnoses["ICD9_SHORT"])))
+    num_proc_codes = len(set(flatten(procedures["ICD9_PROC_SHORT"])))
     data_info["num_icd9_codes"] = num_icd9_codes
     data_info["num_proc_codes"] = num_proc_codes
     data_info["num_med_codes"] = 0
