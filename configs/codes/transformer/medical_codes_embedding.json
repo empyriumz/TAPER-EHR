@@ -11,16 +11,14 @@
         "args": {
             "n_token": 809,
             "n_layer": 2,
-            "d_model": 256,
+            "d_model": 128,
             "n_head": 8,
             "d_head": 64,
             "d_inner": 2048,
             "dropout": 0.1,
-            "tie_weight": false,
-            "d_embed": 256,
+            "d_embed": 128,
             "dropatt": 0.1,
             "tgt_len": 0,
-            "mem_len": 0,
             "ext_len": 0,
             "demographics_len": 0
         }

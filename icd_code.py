@@ -19,6 +19,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s", "--save", default=None, type=str, help="path to dump output"
     )
+    parser.add_argument(
+        "-min-adm",
+        "--min_admission",
+        default=1,
+        type=int,
+        help="minimum number of admissions for each patient",
+    )
     args = parser.parse_args()
 
     # format date time
@@ -63,7 +70,11 @@ if __name__ == "__main__":
     df_adm["DURATION"] = (
         df_adm["DISCHTIME"] - df_adm["ADMITTIME"]
     ).dt.total_seconds() / (24 * 60 * 60)
-
+    
+    # remove patients with admissions < min_adm
+    if args.min_admission > 1:
+        df_adm = remove_min_admissions(df_adm, min_admits=args.min_admission)
+    
     # Adding clinical codes to dataset
     # add diagnoses
     code = "ICD9_CODE"

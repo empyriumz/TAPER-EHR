@@ -45,19 +45,11 @@ class MemTransformerLM(BaseModel):
         d_inner,
         dropout,
         dropatt,
-        tie_weight=True,
         d_embed=None,
-        div_val=1,
-        tie_projs=[False],
         pre_lnorm=False,
         tgt_len=None,
         ext_len=None,
-        mem_len=None,
-        cutoffs=[],
-        adapt_inp=False,
-        same_length=False,
         clamp_len=-1,
-        sample_softmax=-1,
         demographics_len=0,
     ):
         super(MemTransformerLM, self).__init__()
@@ -73,7 +65,6 @@ class MemTransformerLM(BaseModel):
         self.drop = nn.Dropout(dropout)
 
         self.n_layer = n_layer
-
         self.tgt_len = tgt_len
         self.ext_len = ext_len
         self.max_klen = tgt_len + ext_len
@@ -120,7 +111,7 @@ class MemTransformerLM(BaseModel):
         core_out = self.drop(word_emb + pos_emb[-qlen:])
 
         hids.append(core_out)
-        for i, layer in enumerate(self.layers):
+        for layer in self.layers:
             core_out = layer(core_out, dec_attn_mask=dec_attn_mask.bool())
             hids.append(core_out)
 
