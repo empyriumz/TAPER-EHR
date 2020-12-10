@@ -156,7 +156,6 @@ class SeqClassificationDataset(data.Dataset):
             if (i + 1) == len(seq):
                 continue
             s = seq[i]   
-            demo = s["demographics"]
             codes = [
                  s["diagnoses"] * self.diag, 
                  s["procedures"] * self.proc

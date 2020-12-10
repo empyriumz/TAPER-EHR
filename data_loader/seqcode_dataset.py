@@ -45,18 +45,6 @@ class SeqCodeDataset(data.Dataset):
             + self.proc * self.num_pcodes
         )
 
-        self.demographics_shape = self.data_info["demographics_shape"]
-
-    def _gen_idx(self, keys, min_adm=2):
-        idx = []
-        for k in keys:
-            v = self.data[k]
-            if len(v) < min_adm:
-                continue
-            for i, _ in enumerate(v):
-                idx.append((k, i))
-        return idx
-
     def _get_keys(self, min_adm=2):
         keys = []
         for k, v in self.data.items():
@@ -82,7 +70,6 @@ class SeqCodeDataset(data.Dataset):
         x = self.preprocess(self.data[k])
         return x
 
-    
     def preprocess(self, seq):
         """create one hot vector of idx in seq, with length self.num_codes
 
@@ -96,12 +83,10 @@ class SeqCodeDataset(data.Dataset):
         """
 
         icd_one_hot = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
-        demo_one_hot = torch.zeros((self.demographics_shape, self.max_len), dtype=torch.long)
         mask = torch.zeros((self.max_len,), dtype=torch.long)
         ivec = []
         jvec = []
         for i, s in enumerate(seq):
-            demo = s["demographics"]
             l = [
                  s["diagnoses"] * self.diag, 
                  s["procedures"] * self.proc
@@ -109,7 +94,6 @@ class SeqCodeDataset(data.Dataset):
             icd = list(itertools.chain.from_iterable(l))
             
             icd_one_hot[icd, i] = 1
-            demo_one_hot[:, i] = torch.Tensor(demo)
             mask[i] = 1
             for j in icd:
                 for k in icd:
@@ -117,7 +101,7 @@ class SeqCodeDataset(data.Dataset):
                         continue
                     ivec.append(j)
                     jvec.append(k)
-        return icd_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec), demo_one_hot.t()
+        return icd_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec)
 
 def collate_fn(data):
     """Creates mini-batch from x, ivec, jvec tensors
@@ -133,10 +117,9 @@ def collate_fn(data):
         ivec: long vector
         jvec: long vector
     """
-    x, m, ivec, jvec, demo = zip(*data)
+    x, m, ivec, jvec = zip(*data)
     m = torch.stack(m, dim=1)
     x = torch.stack(x, dim=1) 
     ivec = torch.cat(ivec, dim=0)
     jvec = torch.cat(jvec, dim=0)
-    demo = torch.stack(demo, dim=1)
-    return x, m, ivec, jvec, demo
+    return x, m, ivec, jvec

@@ -49,8 +49,7 @@ class MemTransformerLM(BaseModel):
         pre_lnorm=False,
         tgt_len=None,
         ext_len=None,
-        clamp_len=-1,
-        demographics_len=0,
+        clamp_len=-1
     ):
         super(MemTransformerLM, self).__init__()
         self.n_token = n_token
@@ -86,9 +85,8 @@ class MemTransformerLM(BaseModel):
 
         self.pos_emb = PositionalEmbedding(self.d_model)
         self.loss = nn.BCEWithLogitsLoss()
-        self.demographics_len = demographics_len
         self.fc = nn.Linear(
-            self.d_embed + self.demographics_len, self.n_token, bias=True
+            self.d_embed, self.n_token, bias=True
         )
         weights_init(self)
 
@@ -121,7 +119,6 @@ class MemTransformerLM(BaseModel):
 
     def forward(self, data, target, **kwargs):
         target_mask = kwargs.get("target_mask", None)
-        demo = kwargs.get("demo", None)
         tgt_len = target.size(0)
         hidden = self._forward(data)
 
@@ -129,9 +126,6 @@ class MemTransformerLM(BaseModel):
             target_mask = target_mask.unsqueeze(2)
             hidden = torch.mul(hidden, target_mask)
         pred_hid = hidden[-tgt_len:]
-
-        if demo is not None and self.demographics_len:
-            pred_hid = torch.cat((pred_hid, demo), dim=2)
 
         pred_hid = pred_hid.transpose(1, 0).contiguous().view(-1, pred_hid.size(-1))
         logits = self.fc(pred_hid)
