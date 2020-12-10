@@ -79,7 +79,7 @@ class ClassificationTrainer(BaseTrainer):
 
             target = target.to(self.device)
             self.optimizer.zero_grad()
-            output, logits = self.model(data, device=self.device)
+            output, _ = self.model(data, device=self.device)
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()
@@ -143,7 +143,7 @@ class ClassificationTrainer(BaseTrainer):
                 all_t.append(target.numpy())
                 target = target.to(self.device)
 
-                output, logits = self.model(data, self.device)
+                output, _ = self.model(data, self.device)
                 loss = self.loss(
                     output,
                     target.reshape(
