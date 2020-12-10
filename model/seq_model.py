@@ -40,6 +40,7 @@ class Seq_Attention(BaseModel):
         num_classes,
         codes = True,
         demographics=True,
+        demographics_size = 0,
         div_factor=2,
         dropout=0.5,
     ):
@@ -47,6 +48,7 @@ class Seq_Attention(BaseModel):
 
         self.num_classes = num_classes
         self.demographics = demographics
+        self.demographics_size = demographics_size
         self.codes = codes
         
         state_dict = torch.load(transformer_state_path)
