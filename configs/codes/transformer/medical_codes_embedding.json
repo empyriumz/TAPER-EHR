@@ -61,7 +61,7 @@
      "trainer": {
         "type": "SeqCodeTrainer",
         "module_name": "seqcode_trainer",
-        "epochs": 10,
+        "epochs": 50,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2000,

@@ -210,19 +210,15 @@ class SeqClassificationDataset(data.Dataset):
         return l
 
 def collate_fn(data):
-    x_codes, x_cl, x_text, x_tl, demo, y_code = zip(*data)
+    x_codes, x_cl,  demo, y_code = zip(*data)
     x_codes = torch.stack(x_codes, dim=1)
     demo = torch.stack(demo, dim=0)
     y_code = torch.stack(y_code, dim=1).long()
-    x_text = torch.stack(x_text, dim=1)
     x_cl = torch.stack(x_cl, dim=0).long()
-    x_tl = torch.stack(x_tl, dim=0).long()
     b_is = torch.arange(x_cl.shape[0]).reshape(tuple(x_cl.shape)).long()
     return (
         x_codes,
         x_cl.squeeze(),
-        x_text,
-        x_tl.squeeze(),
         b_is.squeeze(),
         demo,
     ), y_code.squeeze()

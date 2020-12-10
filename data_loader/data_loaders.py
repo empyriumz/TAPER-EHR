@@ -2,7 +2,6 @@ from torchvision import datasets, transforms
 
 from .seqcode_dataset import SeqCodeDataset
 from .seqcode_dataset import collate_fn as seqcode_collate
-
 from .text_dataset import TextDataset
 from .text_dataset import collate_fn as text_collate
 
@@ -10,6 +9,8 @@ from .classification_dataset import ClassificationDataset
 from .classification_dataset import collate_fn as classification_collate
 from .classification_dataset import non_seq_collate_fn as non_seq_classification_collate
 
+from .seq_classification_dataset import SeqClassificationDataset
+from .seq_classification_dataset import collate_fn as seq_classification_collate
 
 from base import BaseDataLoader
 
@@ -134,7 +135,8 @@ class ClassificationDataLoader(BaseDataLoader):
 
 class SeqClassificationDataLoader(BaseDataLoader):
     """
-    Length of stay & readmission prediction tasks
+    Length of stay, mortality and readmission prediction tasks using medical codes
+    and/or demographics infomation only
     """
 
     def __init__(
@@ -154,7 +156,7 @@ class SeqClassificationDataLoader(BaseDataLoader):
         self.batch_size = batch_size
         self.train = training
 
-        self.dataset = SeqCodeDataset(
+        self.dataset = SeqClassificationDataset(
             self.data_path,
             self.batch_size,
             y_label,
@@ -163,9 +165,9 @@ class SeqClassificationDataLoader(BaseDataLoader):
             validation_split=validation_split,
             **kwargs
         )
-        collate = classification_collate
+        collate = seq_classification_collate
         
-        super(ClassificationDataLoader, self).__init__(
+        super(SeqClassificationDataLoader, self).__init__(
             self.dataset,
             batch_size,
             shuffle,
