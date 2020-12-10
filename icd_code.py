@@ -75,16 +75,22 @@ if __name__ == "__main__":
     procedures = read_icd_procedures_table(args.path)
     procedures = filter_codes(procedures, code=code)
     procedures['ICD9_PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: str(x)[:2])
-    proc, diag = set(procedures['ICD9_PROC_SHORT']), set(diagnoses['ICD9_SHORT'])
+    # get the unique medical codes after shortening
+    proc_codes, diag_codes = list(set(procedures['ICD9_PROC_SHORT'])), list(set(diagnoses['ICD9_SHORT']))
     
     # establish a mapping from codes to integers
-    total_codes = list(proc | diag)
-    dic_map = {}
-    for i, key in enumerate(total_codes):
-        dic_map[key] = i
+    map_proc = {}
+    for i, key in enumerate(proc_codes):
+        map_proc[key] = i
     # convert the each shortened icd code to a uniqe integer
-    diagnoses['ICD9_SHORT'] = diagnoses['ICD9_SHORT'].apply(lambda x: dic_map[x])
-    procedures['ICD9_PROC_SHORT'] = procedures['ICD9_PROC_SHORT'].apply(lambda x: dic_map[x])
+    procedures['ICD9_PROC_SHORT'] = procedures['ICD9_PROC_SHORT'].apply(lambda x: map_proc[x])
+    
+    map_diag = {}
+    mapping_shift = len(proc_codes) # make sure the mapping will not mix
+    for i, key in enumerate(diag_codes):
+        map_diag[key] = i + mapping_shift
+      
+    diagnoses['ICD9_SHORT'] = diagnoses['ICD9_SHORT'].apply(lambda x: map_diag[x])
     
     diagnoses = group_by_return_col_list(
         diagnoses, ["SUBJECT_ID", "HADM_ID"], 'ICD9_SHORT')

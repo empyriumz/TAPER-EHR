@@ -72,7 +72,7 @@ class ClassificationDataset(data.Dataset):
         )
 
         self.keys = list(map(int, self.data.keys()))
-        self.max_len = self._findmax_len(self.keys)
+        self.max_len = self._findmax_len()
 
         self.num_dcodes = len(self.diag_vocab)
         self.num_pcodes = len(self.proc_vocab)
@@ -176,13 +176,12 @@ class ClassificationDataset(data.Dataset):
 
                 indices.append([k, j + 1])
         return indices
-
-    def _findmax_len(self, keys):
+   
+    def _findmax_len(self):
         m = 0
-        for k in keys:
-            vv = self.data[k]
-            if len(vv) > m:
-                m = len(vv)
+        for v in self.data.values():
+            if len(v) > m:
+                m = len(v)
         return m
 
     def __getitem__(self, index):

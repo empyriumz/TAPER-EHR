@@ -101,7 +101,6 @@ if __name__ == "__main__":
     pids = np.asarray(list(data_data.keys()))
     rng = np.random.default_rng()
     rng.shuffle(pids)
-    #np.random.shuffle(pids)
     kf = KFold(args.kfold, random_state=None, shuffle=False)
 
     if not os.path.isdir(args.save):
