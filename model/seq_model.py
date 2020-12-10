@@ -38,6 +38,7 @@ class Seq_Attention(BaseModel):
         self,
         transformer_state_path,
         num_classes,
+        codes = True,
         demographics=True,
         div_factor=2,
         dropout=0.5,
@@ -46,7 +47,8 @@ class Seq_Attention(BaseModel):
 
         self.num_classes = num_classes
         self.demographics = demographics
-
+        self.codes = codes
+        
         state_dict = torch.load(transformer_state_path)
         transformer_config = state_dict["config"]
         state_dict = state_dict["state_dict"]
@@ -72,16 +74,13 @@ class Seq_Attention(BaseModel):
         )
 
     def forward(self, x, device="cuda"):
-        x_codes, x_cl, x_text, x_tl, b_is, demo = x
+        x_codes, x_cl, b_is, demo = x
 
         x_codes = x_codes.to(device)
         x_cl = x_cl.to(device)
-        x_text = x_text.to(device)
-        x_tl = x_tl.to(device)
         demo = demo.to(device)
         b_is = b_is.to(device)
-        batch_size = b_is.shape[0]
-
+        
         # x_code = x_code.unsqueeze(1) # only needed if feeding single row and len(shape) == 3
         with torch.no_grad():
             mem_out = self.transformer._forward(x_codes)
