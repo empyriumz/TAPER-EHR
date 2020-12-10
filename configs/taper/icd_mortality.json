@@ -3,26 +3,24 @@
     "n_gpu": 1,
     
     "model": {
-        "type": "TextCodePre",
-        "module_name": "textcodepre",
+        "type": "Seq_Attention",
+        "module_name": "seq_model",
         "args": { 
-            "transformer_state_path": "./saved/t_recall_0/0106_201658/checkpoint-epoch100.pth",
-            "text_summarizer_state_path": "./saved/text_discharge_0/0106_200335/checkpoint-epoch30.pth",
-            "num_classes": 1,
-            "demographics_size": 91,
-            "text": true,
+            "transformer_state_path": "./saved/sequence_code_training_0/1210_172836/checkpoint-epoch50.pth",
+            "num_classes": 2,
+            "demographics_size": 54,
+            "text": false,
             "div_factor": 2,
             "codes": true 
         }
     },
     "data_loader": {
-        "type": "ClassificationDataLoader",
+        "type": "SeqClassificationDataLoader",
         "args": {
-            "data_dir": "./data/textcode/biobert_pubmed/",
+            "data_dir": "./data/output",
             "y_label": "mortality",
             "balanced_data": true,
             "batch_size": 32,
-            "text": "rest",
             "shuffle": true,
             "validation_split": 0.15,
             "num_workers": 4,

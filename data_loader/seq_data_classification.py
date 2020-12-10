@@ -227,18 +227,3 @@ def collate_fn(data):
         b_is.squeeze(),
         demo,
     ), y_code.squeeze()
-
-
-data_path = "./data/output"
-batch_size = 32
-train = True
-
-d = SeqClassificationDataset(data_path,
-                      batch_size,
-                      y_label="mortality",
-                      diag = True,
-                      proc = True
-                  )
-d.train_idx
-d[3]
-#x_codes, x_cl, demo, y = d.preprocess(d.data[3])

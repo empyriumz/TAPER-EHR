@@ -131,3 +131,45 @@ class ClassificationDataLoader(BaseDataLoader):
             num_workers,
             collate_fn=collate,
         )
+
+class SeqClassificationDataLoader(BaseDataLoader):
+    """
+    Length of stay & readmission prediction tasks
+    """
+
+    def __init__(
+        self,
+        data_dir,
+        batch_size,
+        shuffle,
+        validation_split,
+        num_workers,
+        y_label="mortality",
+        training=True,
+        balanced_data=False,
+        **kwargs
+    ):
+
+        self.data_path = os.path.expanduser(data_dir)
+        self.batch_size = batch_size
+        self.train = training
+
+        self.dataset = SeqCodeDataset(
+            self.data_path,
+            self.batch_size,
+            y_label,
+            self.train,
+            balanced_data=balanced_data,
+            validation_split=validation_split,
+            **kwargs
+        )
+        collate = classification_collate
+        
+        super(ClassificationDataLoader, self).__init__(
+            self.dataset,
+            batch_size,
+            shuffle,
+            validation_split,
+            num_workers,
+            collate_fn=collate,
+        )
