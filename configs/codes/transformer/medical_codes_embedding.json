@@ -19,8 +19,7 @@
             "d_embed": 128,
             "dropatt": 0.1,
             "tgt_len": 0,
-            "ext_len": 0,
-            "demographics_len": 0
+            "ext_len": 0
         }
     },
     "data_loader": {

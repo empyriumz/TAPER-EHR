@@ -68,20 +68,19 @@ class SeqCodeTrainer(BaseTrainer):
         self.model.train()
         total_loss = 0
         total_metrics = np.zeros(len(self.metrics))
-        for batch_idx, (x, m, ivec, jvec, demo) in enumerate(self.data_loader):
-            data, mask, ivec, jvec, demo = (
+        for batch_idx, (x, m, ivec, jvec) in enumerate(self.data_loader):
+            data, mask, ivec, jvec = (
                 x.to(self.device),
                 m.to(self.device),
                 ivec.to(self.device),
                 jvec.to(self.device),
-                demo.to(self.device),
             )
 
             target = data
 
             self.optimizer.zero_grad()
             logits, emb_w = self.model(
-                data.float(), target, target_mask=mask, demo=demo
+                data.float(), target, target_mask=mask
             )
 
             target = (
@@ -162,20 +161,19 @@ class SeqCodeTrainer(BaseTrainer):
         total_val_loss = 0
         total_val_metrics = np.zeros(len(self.metrics))
         with torch.no_grad():
-            for batch_idx, (x, m, ivec, jvec, demo) in enumerate(
+            for batch_idx, (x, m, ivec, jvec) in enumerate(
                 self.valid_data_loader
             ):
-                data, mask, ivec, jvec, demo = (
+                data, mask, ivec, jvec = (
                     x.to(self.device),
                     m.to(self.device),
                     ivec.to(self.device),
                     jvec.to(self.device),
-                    demo.to(self.device),
                 )
                 target = data
 
                 logits, emb_w = self.model(
-                    data.float(), target, target_mask=mask, demo=demo
+                    data.float(), target, target_mask=mask
                 )
                 target = (
                     target.transpose(1, 0)
