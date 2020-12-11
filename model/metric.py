@@ -111,6 +111,20 @@ def recall(output, target, mask, k=10, window=1):
             r = 0
     return r
 
+def recall_10(output, target, mask, k=20, window=1):
+    return recall(output, target, mask, k=10, window=1)
+
+def recall_20(output, target, mask, k=20, window=1):
+    return recall(output, target, mask, k=20, window=1)
+
+def recall_30(output, target, mask, k=30, window=1):
+    return recall(output, target, mask, k=30, window=1)
+
+def recall_40(output, target, mask, k=40, window=1):
+    return recall(output, target, mask, k=40, window=1)
+
+def recall_50(output, target, mask, k=50, window=1):
+    return recall(output, target, mask, k=50, window=1)
 
 def specificity(output, target, t=0.5):
     with torch.no_grad():
