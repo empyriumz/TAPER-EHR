@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torchvision.utils import make_grid
 from base import BaseTrainer
 from model.metric import roc_auc_1, pr_auc_1, pr_auc, roc_auc
 
@@ -101,7 +100,6 @@ class ClassificationTrainer(BaseTrainer):
                         loss,
                     )
                 )
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         total_metrics = total_metrics / len(self.data_loader)
         if self.prauc_flag:
@@ -158,7 +156,6 @@ class ClassificationTrainer(BaseTrainer):
                 self.writer.add_scalar("loss", loss.item())
                 total_val_loss += loss.item()
                 total_val_metrics += self._eval_metrics(output, target)
-                # self.writer.add_image('input', make_grid(data.cpu(), nrow=8, normalize=True))
 
         total_val_metrics = (total_val_metrics / len(self.valid_data_loader)).tolist()
         if self.prauc_flag:
