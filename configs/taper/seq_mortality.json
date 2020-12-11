@@ -7,7 +7,7 @@
         "module_name": "seq_model",
         "args": { 
             "transformer_state_path": "./saved/sequence_code_training_0/1210_193333/checkpoint-epoch50.pth",
-            "num_classes": 2,
+            "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,
             "div_factor": 2,
@@ -58,7 +58,7 @@
     "trainer": {
         "type": "ClassificationTrainer",
         "module_name": "classification_trainer",
-        "epochs": 10,
+        "epochs": 100,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2000,
