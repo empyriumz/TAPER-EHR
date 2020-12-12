@@ -81,7 +81,7 @@ class SeqClassificationDataset(data.Dataset):
             [Float]: num_neg / num_pos
         """        
         pos_num = np.array([self.data[x][0][self.y_label] for x in self.train_idx]).sum()
-        pos_weight = (len(self.train_idx) - pos_num) / pos_num
+        pos_weight = np.sqrt((len(self.train_idx) - pos_num) / pos_num)
         return pos_weight
         
     def _gen_balanced_indices(self, indices):

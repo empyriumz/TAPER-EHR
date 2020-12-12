@@ -45,7 +45,8 @@ class ClassificationTrainer(BaseTrainer):
             if self.config["loss"] == "bce_loss":
                 self.loss = lambda output, target: loss(output, target, self.weight)
             elif self.config["loss"] == "bce_loss_with_logits":
-                self.loss = lambda output, target: loss(output, target, pos_weight = self.pos_weight)
+                self.loss = lambda output, target: loss(output, target, weight=self.weight, 
+                                                        pos_weight = self.pos_weight)
         self.prauc_flag = pr_auc in self.metrics and roc_auc in self.metrics
 
     def _eval_metrics(self, output, target, **kwargs):
