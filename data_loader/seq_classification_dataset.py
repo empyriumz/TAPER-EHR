@@ -58,6 +58,7 @@ class SeqClassificationDataset(data.Dataset):
         )
         if os.path.exists(data_split_path):
             self.train_idx, self.valid_idx = pickle.load(open(data_split_path, "rb"))
+            self.pos_weight = self.get_pos_weight()
             # select patients with at least two admissions
             self.train_indices = self._gen_indices(self.train_idx)
             self.valid_indices = self._gen_indices(self.valid_idx)
@@ -72,7 +73,17 @@ class SeqClassificationDataset(data.Dataset):
         else:
             # TODO: data index logic if train, validation splits are not provided
             pass
+    
+    def get_pos_weight(self):
+        """The ratio of negative samples over positive samples
 
+        Returns:
+            [Float]: num_neg / num_pos
+        """        
+        pos_num = np.array([self.data[x][0][self.y_label] for x in self.train_idx]).sum()
+        pos_weight = (len(self.train_idx) - pos_num) / pos_num
+        return pos_weight
+        
     def _gen_balanced_indices(self, indices):
         """Generate a balanced set of indices"""
         ind_idx = {}

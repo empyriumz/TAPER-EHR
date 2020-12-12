@@ -1,5 +1,5 @@
 from torchvision import datasets, transforms
-
+import torch
 from .seqcode_dataset import SeqCodeDataset
 from .seqcode_dataset import collate_fn as seqcode_collate
 from .text_dataset import TextDataset
@@ -165,6 +165,7 @@ class SeqClassificationDataLoader(BaseDataLoader):
             validation_split=validation_split,
             **kwargs
         )
+        self.pos_weight = torch.as_tensor(self.dataset.pos_weight).float()
         collate = seq_classification_collate
         
         super(SeqClassificationDataLoader, self).__init__(

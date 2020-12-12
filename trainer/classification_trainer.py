@@ -30,6 +30,7 @@ class ClassificationTrainer(BaseTrainer):
         )
         self.config = config
         self.data_loader = data_loader
+        self.pos_weight = self.data_loader.pos_weight
         self.valid_data_loader = valid_data_loader
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
@@ -41,7 +42,10 @@ class ClassificationTrainer(BaseTrainer):
             weight_0 = self.config["trainer"].get("class_weight_0", 1.0)
             weight_1 = self.config["trainer"].get("class_weight_1", 1.0)
             self.weight = [weight_0, weight_1]
-            self.loss = lambda output, target: loss(output, target, self.weight)
+            if self.config["loss"] == "bce_loss":
+                self.loss = lambda output, target: loss(output, target, self.weight)
+            elif self.config["loss"] == "bce_loss_with_logits":
+                self.loss = lambda output, target: loss(output, target, pos_weight = self.pos_weight)
         self.prauc_flag = pr_auc in self.metrics and roc_auc in self.metrics
 
     def _eval_metrics(self, output, target, **kwargs):
@@ -78,7 +82,10 @@ class ClassificationTrainer(BaseTrainer):
 
             target = target.to(self.device)
             self.optimizer.zero_grad()
-            output, _ = self.model(data, device=self.device)
+            if self.config["loss"] == "bce_loss":
+                output, _ = self.model(data, device=self.device)
+            elif self.config["loss"] == "bce_loss_with_logits":
+                _ ,output= self.model(data, device=self.device)
             loss = self.loss(output, target)
             loss.backward()
             self.optimizer.step()

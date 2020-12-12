@@ -48,11 +48,14 @@ def skipgram_loss_neg(u_hat, v, positive_val):
 def bce_loss(output, target, weight=[1.0, 1.0]):
     weight = ((target == 1).float() * weight[1]) + ((target == 0).float() * weight[0])
     loss = nn.BCELoss(weight)
-    # target = target.float()
-    # return - (target * output.log() + (1-target) * (1 - output).log()).mean()
     # loss = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([1.0, 7.0]).to(output.device))
     # output = torch.unsqueeze(output, dim=1)
     # target = torch.unsqueeze(target, dim=1)
+    return loss(output, target.float())
+
+def bce_loss_with_logits(output, target, pos_weight = 1.0):
+    loss = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+    # loss = nn.BCEWithLogitsLoss(pos_weight=torch.Tensor([1.0, 7.0]).to(output.device))
     return loss(output, target.float())
 
 

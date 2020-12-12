@@ -39,7 +39,7 @@
             "amsgrad": true
         }
     },
-    "loss": "bce_loss",
+    "loss": "bce_loss_with_logits",
     "metrics": [
         "accuracy2",
         "sensitivity",
@@ -58,13 +58,13 @@
     "trainer": {
         "type": "ClassificationTrainer",
         "module_name": "classification_trainer",
-        "epochs": 20,
+        "epochs": 100,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2000,
         "log_step": 1000,
         "class_weight_0": 1.0,
-        "class_weight_1": 100.0,
+        "class_weight_1": 1.0,
         "monitor": "max accuracy2",
         "tensorboardX": false,
         "log_dir": "saved/runs"
