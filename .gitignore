@@ -3,6 +3,7 @@
 /data/
 /model/bio_bert.pkl
 pd-test.py
+test.ipynb
 code_review.txt
 tmp.py
 # macos
