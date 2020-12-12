@@ -2,7 +2,6 @@
 /biobert_v1.1_pubmed/*
 /data/
 /model/bio_bert.pkl
-test.ipynb
 pd-test.py
 code_review.txt
 tmp.py
