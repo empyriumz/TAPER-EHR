@@ -78,9 +78,7 @@ class ClassificationTrainer(BaseTrainer):
         all_t = []
         all_o = []
         for batch_idx, (data, target) in enumerate(self.data_loader):
-
             all_t.append(target.numpy())
-
             target = target.to(self.device)
             self.optimizer.zero_grad()
             if self.config["loss"] == "bce_loss":

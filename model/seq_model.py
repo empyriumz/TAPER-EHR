@@ -63,7 +63,7 @@ class Seq_Attention(BaseModel):
 
         self.patient_representation_size = (
             + self.transformer.d_embed * int(self.codes)
-            + self.demographics_size
+            + self.demographics_size * int(self.demographics)
         )
         self.predictor = nn.Sequential(
             nn.Dropout(p=dropout),

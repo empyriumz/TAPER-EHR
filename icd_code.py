@@ -164,7 +164,6 @@ if __name__ == "__main__":
         df["LAST_CAREUNIT"]
     )
     df["GENDER"], demographic_cols["GENDER"] = pd.factorize(df["GENDER"])
-    df["AGE"] = df["AGE"].astype(int)
     los_bins = [1, 2, 3, 4, 5, 6, 7, 8, 14, float("inf")]
     los_labels = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     # LOS: Length of stay
