@@ -50,27 +50,8 @@ def pr_auc_1(output, target):
 
 def accuracy(output, target):
     with torch.no_grad():
-        output = torch.squeeze(output)
-        target = torch.squeeze(target)
-        pred = torch.argmax(output, dim=1)
-        assert pred.shape[0] == len(target)
-        correct = 0
-        correct += torch.sum(pred == target).item()
-    return correct / len(target)
-
-
-def accuracy2(output, target, t=0):
-    with torch.no_grad():
-        if len(target.shape) == 1:
-            target = torch.unsqueeze(target, 1)
-        if len(output.shape) == 1:
-            output = torch.unsqueeze(output, 1)
-
         pred = output >= 0.5  # torch.argmax(output, dim=1)
         pred = pred.long()
-
-        assert pred.shape[0] == len(target)
-
         correct = 0
         correct += torch.sum(pred == target).item()
 

@@ -78,6 +78,8 @@ class ClassificationTrainer(BaseTrainer):
         all_o = []
         for batch_idx, (data, target) in enumerate(self.data_loader):
             target = target.to(self.device)
+            if len(target.shape) == 0:
+                target = target.unsqueeze(dim=0)
             output = None
             self.optimizer.zero_grad()
             if self.config["loss"] == "bce_loss":
@@ -146,6 +148,8 @@ class ClassificationTrainer(BaseTrainer):
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
                 target = target.to(self.device)
+                if len(target.shape) == 0:
+                    target = target.unsqueeze(dim=0)
                 output = None
                 if self.config["loss"] == "bce_loss":
                     output, _ = self.model(data, device=self.device)

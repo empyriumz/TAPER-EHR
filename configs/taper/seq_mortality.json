@@ -41,7 +41,7 @@
     },
     "loss": "bce_loss_with_logits",
     "metrics": [
-        "accuracy2",
+        "accuracy",
         "sensitivity",
         "specificity",
         "precision",
@@ -58,14 +58,14 @@
     "trainer": {
         "type": "ClassificationTrainer",
         "module_name": "classification_trainer",
-        "epochs": 10,
+        "epochs": 50,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2000,
         "log_step": 1000,
         "class_weight_0": 0.5,
         "class_weight_1": 1.0,
-        "monitor": "max accuracy2",
+        "monitor": "max accuracy",
         "tensorboardX": false,
         "log_dir": "saved/runs"
     }

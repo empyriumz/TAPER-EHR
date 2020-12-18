@@ -103,10 +103,17 @@ class Seq_Attention(BaseModel):
         logits = self.predictor(patient_rep)
         if self.num_classes > 1:
             log_probs = F.log_softmax(logits, dim=1).squeeze()
+        else:            
+            log_probs = torch.sigmoid(logits)
+            
+        if len(logits) == 1:
+            logits = logits.squeeze(dim=0)
+            log_probs = log_probs.squeeze(dim=0)
         else:
-            log_probs = torch.sigmoid(logits).squeeze()
-            print(log_probs)
-        return log_probs, logits.squeeze()
+            logits = logits.squeeze()
+            log_probs = log_probs.squeeze()
+                     
+        return log_probs, logits
 
     def __str__(self):
         """
