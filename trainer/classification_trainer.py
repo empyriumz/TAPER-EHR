@@ -2,8 +2,6 @@ import numpy as np
 import torch
 from base import BaseTrainer
 from model.metric import roc_auc_1, pr_auc_1, pr_auc, roc_auc
-
-
 class ClassificationTrainer(BaseTrainer):
     """
     Trainer class
@@ -41,7 +39,8 @@ class ClassificationTrainer(BaseTrainer):
         if self.config["model"]["args"]["num_classes"] == 1:
             weight_0 = self.config["trainer"].get("class_weight_0", 1.0)
             weight_1 = self.config["trainer"].get("class_weight_1", 1.0)
-            self.weight = [weight_0, weight_1]
+            #self.weight = [weight_0, weight_1]
+            self.weight = [1.0, torch.sqrt(self.pos_weight)]
             if self.config["loss"] == "bce_loss":
                 self.loss = lambda output, target: loss(output, target, self.weight)
             elif self.config["loss"] == "bce_loss_with_logits":
@@ -78,8 +77,8 @@ class ClassificationTrainer(BaseTrainer):
         all_t = []
         all_o = []
         for batch_idx, (data, target) in enumerate(self.data_loader):
-            all_t.append(target.numpy())
             target = target.to(self.device)
+            output = None
             self.optimizer.zero_grad()
             if self.config["loss"] == "bce_loss":
                 output, _ = self.model(data, device=self.device)
@@ -93,8 +92,10 @@ class ClassificationTrainer(BaseTrainer):
 
             total_loss += loss
             total_metrics += self._eval_metrics(output, target)
+            all_t.append(target.detach().cpu().numpy())
             all_o.append(output.detach().cpu().numpy())
-
+            del target
+            del output
             if self.verbosity >= 2 and batch_idx % self.log_step == 0:
                 self.logger.info(
                     "Train Epoch: {} [{}/{} ({:.0f}%)] {}: {:.6f}".format(
@@ -144,10 +145,12 @@ class ClassificationTrainer(BaseTrainer):
         all_o = []
         with torch.no_grad():
             for batch_idx, (data, target) in enumerate(self.valid_data_loader):
-                all_t.append(target.numpy())
                 target = target.to(self.device)
-
-                output, _ = self.model(data, self.device)
+                output = None
+                if self.config["loss"] == "bce_loss":
+                    output, _ = self.model(data, device=self.device)
+                elif self.config["loss"] == "bce_loss_with_logits":
+                    _ ,output= self.model(data, device=self.device)
                 loss = self.loss(
                     output,
                     target.reshape(
@@ -155,14 +158,16 @@ class ClassificationTrainer(BaseTrainer):
                     ),
                 )
                 all_o.append(output.detach().cpu().numpy())
-
+                all_t.append(target.detach().cpu().numpy())
                 self.writer.set_step(
                     (epoch - 1) * len(self.valid_data_loader) + batch_idx, "valid"
                 )
                 self.writer.add_scalar("loss", loss.item())
                 total_val_loss += loss.item()
                 total_val_metrics += self._eval_metrics(output, target)
-
+                del output
+                del target
+                
         total_val_metrics = (total_val_metrics / len(self.valid_data_loader)).tolist()
         if self.prauc_flag:
             all_o = np.hstack(all_o)

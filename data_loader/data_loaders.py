@@ -1,4 +1,3 @@
-from torchvision import datasets, transforms
 import torch
 from .seqcode_dataset import SeqCodeDataset
 from .seqcode_dataset import collate_fn as seqcode_collate
@@ -29,7 +28,6 @@ class SeqCodeDataLoader(BaseDataLoader):
         shuffle,
         validation_split,
         num_workers,
-        vocab_fname="",
         training=True,
         file_name=None,
         **kwargs

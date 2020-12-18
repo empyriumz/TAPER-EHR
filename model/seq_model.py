@@ -38,9 +38,9 @@ class Seq_Attention(BaseModel):
         self,
         transformer_state_path,
         num_classes,
-        codes = True,
+        codes=True,
         demographics=True,
-        demographics_size = 0,
+        demographics_size=0,
         div_factor=2,
         dropout=0.5,
     ):
@@ -50,7 +50,7 @@ class Seq_Attention(BaseModel):
         self.demographics = demographics
         self.demographics_size = demographics_size
         self.codes = codes
-        
+
         state_dict = torch.load(transformer_state_path)
         transformer_config = state_dict["config"]
         state_dict = state_dict["state_dict"]
@@ -61,18 +61,17 @@ class Seq_Attention(BaseModel):
         self.transformer.load_state_dict(state_dict)
         self.transformer.eval()
 
-        self.patient_representation_size = (
-            + self.transformer.d_embed * int(self.codes)
-            + self.demographics_size * int(self.demographics)
-        )
+        self.patient_rep_size = +self.transformer.d_embed * int(
+            self.codes
+        ) + self.demographics_size * int(self.demographics)
         self.predictor = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(
-                self.patient_representation_size,
-                self.patient_representation_size // div_factor,
+                self.patient_rep_size,
+                self.patient_rep_size // div_factor,
             ),
             nn.ReLU(inplace=True),
-            nn.Linear(self.patient_representation_size // div_factor, self.num_classes),
+            nn.Linear(self.patient_rep_size // div_factor, self.num_classes),
         )
 
     def forward(self, x, device="cuda"):
@@ -82,31 +81,31 @@ class Seq_Attention(BaseModel):
         x_cl = x_cl.to(device)
         demo = demo.to(device)
         b_is = b_is.to(device)
-        
+        patient_rep = None
         # x_code = x_code.unsqueeze(1) # only needed if feeding single row and len(shape) == 3
         with torch.no_grad():
             mem_out = self.transformer._forward(x_codes)
             mem_out = mem_out[x_cl, b_is, :]
 
         # mem_out = torch.mean(mem_out, dim=0)
-        patient_representation = torch.tensor([], device=device)
 
         if self.codes:
-            patient_representation = mem_out
+            patient_rep = mem_out
 
         if self.demographics:
-            if len(patient_representation.shape) == 0:
-                patient_representation = demo
+            if len(patient_rep.shape) == 0:
+                patient_rep = demo
             else:
-                patient_representation = torch.cat(
-                    (patient_representation, demo), dim=1
-                )
+                if len(patient_rep.shape) == 1:
+                    patient_rep = patient_rep.unsqueeze(dim=0)
+                patient_rep = torch.cat((patient_rep, demo), dim=1)
 
-        logits = self.predictor(patient_representation)
+        logits = self.predictor(patient_rep)
         if self.num_classes > 1:
             log_probs = F.log_softmax(logits, dim=1).squeeze()
         else:
             log_probs = torch.sigmoid(logits).squeeze()
+            print(log_probs)
         return log_probs, logits.squeeze()
 
     def __str__(self):
