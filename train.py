@@ -10,7 +10,7 @@ import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.metric as module_metric
 from utils import Logger
-
+from model import optimization
 
 def get_instance(module, name, config, *args):
     return getattr(module, config[name]["type"])(*args, **config[name]["args"])
@@ -67,10 +67,14 @@ def main(config, resume, nni_params={}):
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())
     optimizer = get_instance(torch.optim, "optimizer", config, trainable_params)
-    lr_scheduler = get_instance(
-        torch.optim.lr_scheduler, "lr_scheduler", config, optimizer
-    )
-
+    try:
+        lr_scheduler = get_instance(
+        optimization, "lr_scheduler", config, optimizer
+        )
+    except:
+        lr_scheduler = get_instance(
+            torch.optim.lr_scheduler, "lr_scheduler", config, optimizer
+        )
     Trainer = import_module("trainer", config)
     trainer = Trainer(
         model,

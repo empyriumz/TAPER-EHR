@@ -194,8 +194,7 @@ class SeqCodeTrainer(BaseTrainer):
                     jvec,
                     window=self.config["loss_window"],
                 )
-                # why no code loss for validation?
-                loss = loss_dict["visit_loss"]  # + loss_dict['code_loss']
+                loss = loss_dict["visit_loss"]  + loss_dict['code_loss']
                 self.writer.set_step(
                     (epoch - 1) * len(self.valid_data_loader) + batch_idx, "valid"
                 )

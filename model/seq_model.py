@@ -5,34 +5,6 @@ from base import BaseModel
 from model.mem_transformer import MemTransformerLM
 from model.gru_ae import *
 import numpy as np
-
-
-class EncoderRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, **kwargs):
-        super(EncoderRNN, self).__init__()
-        self.input_size = input_size
-        self.hidden_size = hidden_size
-
-        self.gru = nn.GRU(self.input_size, self.hidden_size)
-
-    def forward(self, input, hidden):
-        if len(input.shape) == 2:
-            input = input.unsqueeze(1)
-        output = input
-        output, hidden = self.gru(output, hidden)
-        return output, hidden
-
-    def set_device(self, device):
-        self.device = device
-
-    def init_hidden(self, batch_size, device):
-        return torch.zeros(1, batch_size, self.hidden_size, device=device)
-
-    def init_from_state_dict(self, state_dict):
-        td = {k: v for k, v in self.named_parameters() if "encoder." + k in state_dict}
-        self.load_state_dict(td)
-
-
 class Seq_Attention(BaseModel):
     def __init__(
         self,

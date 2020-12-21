@@ -1,0 +1,75 @@
+{
+    "name": "sequence_code_training_0",
+    "n_gpu": 1,
+    "model": {
+        "type": "MemTransformerLM",
+        "module_name": "mem_transformer",
+        "init": "init",
+        "init_range": 0.1,
+        "init_std": 0.02, 
+        "proj_init_std": 0.01,
+        "args": {
+            "n_token": 809,
+            "n_layer": 2,
+            "d_model": 128,
+            "n_head": 8,
+            "d_head": 64,
+            "d_inner": 2048,
+            "dropout": 0.1,
+            "d_embed": 128,
+            "dropatt": 0.1,
+            "tgt_len": 0,
+            "ext_len": 0
+        }
+    },
+    "data_loader": {
+        "type": "SeqCodeDataLoader",
+        "args": {
+            "data_dir": "./data/output",
+            "batch_size": 32,
+            "shuffle": false,
+            "validation_split": 0.10,
+            "num_workers": 1,
+            "med": false,
+            "cpt": false,
+            "proc": true,
+            "diag": true,
+            "split_num": 0
+        }
+    },
+    "optimizer": {
+        "type": "Adam",
+        "args": {
+            "lr": 0.2,
+            "weight_decay": 0.0,
+            "amsgrad": true
+         }
+    },
+    "loss": "med2vec_loss_transformer",
+    "clip_grad":0.25,
+    "loss_window": 2, 
+    "metrics": [
+        "recall_10", "recall_20", "recall_30", "recall_40", "recall_50"
+    ],
+    "lr_scheduler": {
+        "type": "NoamLR",
+        "args": {
+            "warmup_steps": 2000
+        }
+    },
+     "trainer": { 
+        "type": "SeqCodeTrainer",
+        "module_name": "seqcode_trainer",
+        "epochs": 100,
+        "save_dir": "saved/",
+        "save_period": 10,
+        "verbosity": 2000,
+        "log_step":2000,
+        "recall_k": 10,
+        "monitor": "min val_loss",
+        "code_loss": true,
+        "visit_loss": true,
+        "tensorboardX": false,
+        "log_dir": "saved/runs"
+    }
+}
