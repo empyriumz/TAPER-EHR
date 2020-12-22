@@ -53,7 +53,8 @@ SCHEDULES = {
     "warmup_constant": warmup_constant,
     "warmup_linear": warmup_linear,
 }
-        
+
+
 class NoamLR(_LRScheduler):
     """
     Implements the Noam Learning rate schedule. This corresponds to increasing the learning rate
@@ -65,15 +66,19 @@ class NoamLR(_LRScheduler):
     warmup_steps: ``int``, required.
         The number of steps to linearly increase the learning rate.
     """
+
     def __init__(self, optimizer, warmup_steps):
         self.warmup_steps = warmup_steps
         super().__init__(optimizer)
 
     def get_lr(self):
         last_epoch = max(1, self.last_epoch)
-        scale = self.warmup_steps ** 0.5 * min(last_epoch ** (-0.5), last_epoch * self.warmup_steps ** (-1.5))
+        scale = self.warmup_steps ** 0.5 * min(
+            last_epoch ** (-0.5), last_epoch * self.warmup_steps ** (-1.5)
+        )
         return [base_lr * scale for base_lr in self.base_lrs]
-    
+
+
 class BertAdam(Optimizer):
     """Implements BERT version of Adam algorithm with weight decay fix.
     Params:

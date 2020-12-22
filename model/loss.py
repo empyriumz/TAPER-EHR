@@ -3,26 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-def mse_loss(output, target, i_s):
-    mse = torch.nn.MSELoss(size_average=True)
-    loss = 0.0
-    i_s = i_s + 1
-    for i in range(target.shape[1]):
-        if len(i_s.shape) == 0:
-            n = i_s.item()
-        else:
-            n = i_s[i].item()
-        for j in range(n):
-            loss += mse(output[j, i], target[j, i])
-    loss = (1.0 / (float(torch.sum(i_s)))) * loss
-    if loss == 0.0:
-        import pdb
-
-        pdb.set_trace()
-        loss = torch.tensor(0.0, device=inputs.device)
-    return loss
-
-
 def nll_loss(output, target):
     output = torch.squeeze(output)
     target = torch.squeeze(target)

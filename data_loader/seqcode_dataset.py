@@ -13,8 +13,7 @@ class SeqCodeDataset(data.Dataset):
         med=False,
         cpt=False,
         diag=False,
-        proc=False,
-        split_num=2,
+        proc=False
     ):
         self.proc = proc
         self.med = med
@@ -27,16 +26,8 @@ class SeqCodeDataset(data.Dataset):
         self.data_info = self.data["info"]
         self.data = self.data["data"]
 
-        data_split_path = os.path.join(
-            data_path, "splits", "split_{}.pkl".format(split_num)
-        )
-        if os.path.exists(data_split_path):
-            self.train_idx, self.valid_idx = pickle.load(open(data_split_path, "rb"))
-
-        self.keys = self._get_keys()
-
+        self.keys = list(self.data.keys())
         self.max_len = self._findmax_len()
-
         self.num_dcodes = self.data_info['num_icd9_codes']
         self.num_pcodes = self.data_info['num_proc_codes']
     
@@ -44,14 +35,6 @@ class SeqCodeDataset(data.Dataset):
             self.diag * self.num_dcodes
             + self.proc * self.num_pcodes
         )
-
-    def _get_keys(self, min_adm=2):
-        keys = []
-        for k, v in self.data.items():
-            if len(v) < min_adm:
-                continue
-            keys.append(k)
-        return keys
 
     def _findmax_len(self):
         m = 0
@@ -61,14 +44,10 @@ class SeqCodeDataset(data.Dataset):
         return m
 
     def __len__(self):
-        if self.train:
-            return len(self.keys)
-        else:
-            return 0
+        return len(self.keys)
 
     def __getitem__(self, k):
-        x = self.preprocess(self.data[k])
-        return x
+        return self.preprocess(self.data[k])
 
     def preprocess(self, seq):
         """create one hot vector of idx in seq, with length self.num_codes
@@ -82,7 +61,7 @@ class SeqCodeDataset(data.Dataset):
             jvec: vector for learning code representation
         """
 
-        icd_one_hot = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
+        codes_one_hot = torch.zeros((self.num_codes, self.max_len), dtype=torch.long)
         mask = torch.zeros((self.max_len,), dtype=torch.long)
         ivec = []
         jvec = []
@@ -91,17 +70,17 @@ class SeqCodeDataset(data.Dataset):
                  s["diagnoses"] * self.diag, 
                  s["procedures"] * self.proc
             ]
-            icd = list(itertools.chain.from_iterable(l))
+            codes = list(itertools.chain.from_iterable(l))
             
-            icd_one_hot[icd, i] = 1
+            codes_one_hot[codes, i] = 1
             mask[i] = 1
-            for j in icd:
-                for k in icd:
+            for j in codes:
+                for k in codes:
                     if j == k:
                         continue
                     ivec.append(j)
                     jvec.append(k)
-        return icd_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec)
+        return codes_one_hot.t(), mask, torch.LongTensor(ivec), torch.LongTensor(jvec)
 
 def collate_fn(data):
     """Creates mini-batch from x, ivec, jvec tensors

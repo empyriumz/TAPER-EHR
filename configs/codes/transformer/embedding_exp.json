@@ -27,14 +27,14 @@
         "args": {
             "data_dir": "./data/output",
             "batch_size": 32,
-            "shuffle": false,
+            "shuffle": true,
+            "seed": 10,
             "validation_split": 0.10,
-            "num_workers": 1,
+            "num_workers": 4,
             "med": false,
             "cpt": false,
             "proc": true,
-            "diag": true,
-            "split_num": 0
+            "diag": true
         }
     },
     "optimizer": {

@@ -117,8 +117,7 @@ if __name__ == "__main__":
     stays = stays.merge(diagnoses, how="inner", left_on=cols, right_on=cols)
     stays = stays.merge(procedures, how="inner", left_on=cols, right_on=cols)
     stays = add_age_to_icustays(stays)
-    stays['ICD_ALL'] = stays[['ICD9_PROC_SHORT', 'ICD9_SHORT']].sum(axis=1)
-
+    
     df_adm = pd.merge(
         df_adm, stays, on=["SUBJECT_ID", "HADM_ID"], how="inner"
     )
@@ -171,10 +170,11 @@ if __name__ == "__main__":
     
     data = {}
     pids = list(set(df["SUBJECT_ID"]))
-    for pid in tqdm(pids):
+    for i, pid in enumerate(tqdm(pids)):
         pid_df = df[df["SUBJECT_ID"] == pid]
         pid_df = pid_df.sort_values("ADMITTIME").reset_index()
-        data[pid] = []
+        # change key from subject ID to the integer number
+        data[i] = []
         time = 0
         for _, r in pid_df.iterrows():
             # filt notes prior to n days and concatenate them
@@ -202,18 +202,17 @@ if __name__ == "__main__":
             
             diag_codes = r['ICD9_SHORT']
             proc_codes = r['ICD9_PROC_SHORT']
-            icd_codes = r['ICD_ALL']
+            
             admit_data["diagnoses"] = diag_codes
             admit_data["procedures"] = proc_codes
-            admit_data["icd"] = icd_codes
-               
+            
             time += r["TIMEDELTA"]
             admit_data["timedelta"] = time
             admit_data["los"] = r["LOS"]
             admit_data["readmission"] = r["readmission_label"]
             admit_data["mortality"] = r["DEATHTIME"] == r["DEATHTIME"]
-            data[pid].append(admit_data)
-    
+            data[i].append(admit_data)
+
     pids = list(data.keys())
     def flatten(x):
         return itertools.chain.from_iterable(x)

@@ -6,7 +6,7 @@
         "type": "Seq_Attention",
         "module_name": "seq_model",
         "args": { 
-            "transformer_state_path": "./saved/sequence_code_training_0/1221_220159/model_best.pth",
+            "transformer_state_path": "./saved/sequence_code_training_0/1222_194538/model_best.pth",
             "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,
@@ -19,7 +19,6 @@
         "args": {
             "data_dir": "./data/output",
             "y_label": "mortality",
-            "balanced_data": false,
             "batch_size": 32,
             "shuffle": true,
             "validation_split": 0.15,
@@ -39,7 +38,7 @@
             "amsgrad": true
         }
     },
-    "loss": "bce_loss_with_logits",
+    "loss": "bce_loss",
     "metrics": [
         "accuracy",
         "sensitivity",

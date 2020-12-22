@@ -43,8 +43,6 @@ class BaseDataLoader(DataLoader):
         self.shuffle = shuffle
         self.seed = seed
         self.dataset = dataset
-
-        self.batch_idx = 0
         self.n_samples = len(dataset)
 
         self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
@@ -70,38 +68,26 @@ class BaseDataLoader(DataLoader):
         # added for med2vec dataset where order matters
         len_valid = int(self.n_samples * split)
         if self.shuffle:
-            if hasattr(self.dataset, "valid_idx"):
-                valid_idx = self.dataset.valid_idx
-                train_idx = self.dataset.train_idx
-            else:
-                valid_idx = idx_full[0:len_valid]
-
-            train_sampler = SubsetRandomSampler(train_idx)
+            rng = np.random.default_rng()
+            idx = rng.permutation(idx_full)
+            valid_idx = idx[:len_valid]
+            train_idx = idx[len_valid:]
+            
             # use the balanced dataset sampler if balanced_data is set
             # this option can be passed to the dataset class
-            if hasattr(self.dataset, "balanced_data") and self.dataset.balanced_data:
-                train_sampler = ImbalancedSampler(self.dataset, train_idx)
-
-            valid_sampler = SubsetRandomSampler(valid_idx)
+            # if hasattr(self.dataset, "balanced_data") and self.dataset.balanced_data:
+            #     train_sampler = ImbalancedSampler(self.dataset, train_idx)
 
         else:
-            num_intervals = len(idx_full) // len_valid
-            rand_i = np.random.randint(0, num_intervals)
-            valid_idx = idx_full[rand_i * len_valid : (rand_i + 1) * len_valid]
-            train_idx = np.delete(
-                idx_full, np.arange(rand_i * len_valid, (rand_i + 1) * len_valid)
-            )
-
-            if hasattr(self.dataset, "valid_idx"):
-                valid_idx = self.dataset.valid_idx
-                train_idx = self.dataset.train_idx
-
-            train_sampler = MySequentialSampler(train_idx)
-            valid_sampler = MySequentialSampler(valid_idx)
+            valid_idx = idx_full[:len_valid]
+            train_idx = idx_full[len_valid:]
+            
+        train_sampler = MySequentialSampler(train_idx)
+        valid_sampler = MySequentialSampler(valid_idx)
+           
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False
-        self.n_samples = len(train_idx)
-
+        
         return train_sampler, valid_sampler
 
     def split_validation(self):

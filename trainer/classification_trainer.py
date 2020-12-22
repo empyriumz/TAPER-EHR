@@ -28,7 +28,7 @@ class ClassificationTrainer(BaseTrainer):
         )
         self.config = config
         self.data_loader = data_loader
-        self.pos_weight = self.data_loader.pos_weight
+        #self.pos_weight = self.data_loader.pos_weight
         self.valid_data_loader = valid_data_loader
         self.do_validation = self.valid_data_loader is not None
         self.lr_scheduler = lr_scheduler
@@ -39,13 +39,14 @@ class ClassificationTrainer(BaseTrainer):
         if self.config["model"]["args"]["num_classes"] == 1:
             weight_0 = self.config["trainer"].get("class_weight_0", 1.0)
             weight_1 = self.config["trainer"].get("class_weight_1", 1.0)
-            #self.weight = [weight_0, weight_1]
-            self.weight = [1.0, torch.sqrt(self.pos_weight)]
+            self.weight = [weight_0, weight_1]
+            #self.weight = [1.0, torch.sqrt(self.pos_weight)]
             if self.config["loss"] == "bce_loss":
                 self.loss = lambda output, target: loss(output, target, self.weight)
             elif self.config["loss"] == "bce_loss_with_logits":
-                self.loss = lambda output, target: loss(output, target, weight=self.weight, 
-                                                        pos_weight = self.pos_weight)
+                # self.loss = lambda output, target: loss(output, target, weight=self.weight, 
+                #                                         pos_weight = self.pos_weight)
+                self.loss = lambda output, target: loss(output, target, weight=self.weight)
         self.prauc_flag = pr_auc in self.metrics and roc_auc in self.metrics
 
     def _eval_metrics(self, output, target, **kwargs):

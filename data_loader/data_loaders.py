@@ -28,12 +28,13 @@ class SeqCodeDataLoader(BaseDataLoader):
         shuffle,
         validation_split,
         num_workers,
+        seed,
         training=True,
-        file_name=None,
         **kwargs
     ):
         self.data_path = os.path.expanduser(data_dir)
         self.train = training
+        self.seed = seed
         self.batch_size = batch_size
         self.dataset = SeqCodeDataset(
             self.data_path, self.batch_size, self.train, **kwargs
@@ -45,6 +46,7 @@ class SeqCodeDataLoader(BaseDataLoader):
             validation_split,
             num_workers,
             collate_fn=seqcode_collate,
+            seed = self.seed
         )
 
 
@@ -145,25 +147,24 @@ class SeqClassificationDataLoader(BaseDataLoader):
         validation_split,
         num_workers,
         y_label="mortality",
+        seed=0,
         training=True,
-        balanced_data=False,
         **kwargs
     ):
 
         self.data_path = os.path.expanduser(data_dir)
         self.batch_size = batch_size
         self.train = training
-
+        self.seed = seed
         self.dataset = SeqClassificationDataset(
             self.data_path,
             self.batch_size,
             y_label,
             self.train,
-            balanced_data=balanced_data,
             validation_split=validation_split,
             **kwargs
         )
-        self.pos_weight = torch.as_tensor(self.dataset.pos_weight).float()
+        #self.pos_weight = torch.as_tensor(self.dataset.pos_weight).float()
         collate = seq_classification_collate
         
         super(SeqClassificationDataLoader, self).__init__(
@@ -173,4 +174,5 @@ class SeqClassificationDataLoader(BaseDataLoader):
             validation_split,
             num_workers,
             collate_fn=collate,
+            seed = self.seed
         )
