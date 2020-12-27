@@ -176,41 +176,37 @@ if __name__ == "__main__":
         # change key from subject ID to the integer number
         data[i] = []
         time = 0
-        for _, r in pid_df.iterrows():
-            # filt notes prior to n days and concatenate them
-            # leave discharge summary seperate
-            admit_data = {}
-            demographics = [r["AGE"], r["GENDER"]]
-            # one-hot encoding for MARITAL, LAST_CAREUNIT and ETHNICITY
-            marital_status = np.zeros(
+        tmp = pid_df.iloc[0]
+        # first part of admit data, which is same regardless of visits 
+        admit_data = {}
+        # one-hot encoding for MARITAL, LAST_CAREUNIT and ETHNICITY   
+        demographics = [tmp["AGE"], tmp["GENDER"]]
+        marital_status = np.zeros(
                     (demographic_cols["MARITAL_STATUS"].size,), dtype=int
                 )
-            marital_status[r["MARITAL_STATUS"]] = 1
-            demographics += list(marital_status)
-
-            icu_unit = np.zeros(
+        marital_status[tmp["MARITAL_STATUS"]] = 1
+        demographics += list(marital_status)
+        icu_unit = np.zeros(
                     (demographic_cols["LAST_CAREUNIT"].size,), dtype=int
                 )
-            icu_unit[r["LAST_CAREUNIT"]] = 1
-            demographics += list(icu_unit)
+        icu_unit[tmp["LAST_CAREUNIT"]] = 1
+        demographics += list(icu_unit)
 
-            ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
-            ethnicity[r["ETHNICITY"]] = 1
-            demographics += list(ethnicity)
-
-            admit_data["demographics"] = demographics
-            
-            diag_codes = r['ICD9_SHORT']
-            proc_codes = r['ICD9_PROC_SHORT']
-            
-            admit_data["diagnoses"] = diag_codes
-            admit_data["procedures"] = proc_codes
-            
+        ethnicity = np.zeros((demographic_cols["ETHNICITY"].size,), dtype=int)
+        ethnicity[tmp["ETHNICITY"]] = 1
+        demographics += list(ethnicity)
+        admit_data["demographics"] = demographics
+        admit_data["readmission"] = tmp["readmission_label"]
+        admit_data["mortality"] = tmp["DEATHTIME"] == tmp["DEATHTIME"]
+        data[i].append(admit_data)
+        for _, r in pid_df.iterrows():
+            admit_data = {}
+            # gather the medical codes for each visit              
+            admit_data["diagnoses"] = r['ICD9_SHORT']
+            admit_data["procedures"] = r['ICD9_PROC_SHORT'] 
+            admit_data["los"] = r["LOS"]           
             time += r["TIMEDELTA"]
-            admit_data["timedelta"] = time
-            admit_data["los"] = r["LOS"]
-            admit_data["readmission"] = r["readmission_label"]
-            admit_data["mortality"] = r["DEATHTIME"] == r["DEATHTIME"]
+            admit_data["timedelta"] = time          
             data[i].append(admit_data)
 
     pids = list(data.keys())

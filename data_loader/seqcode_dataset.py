@@ -9,7 +9,6 @@ class SeqCodeDataset(data.Dataset):
         self,
         data_path,
         batch_size,
-        train=True,
         med=False,
         cpt=False,
         diag=False,
@@ -19,7 +18,6 @@ class SeqCodeDataset(data.Dataset):
         self.med = med
         self.diag = diag
         self.cpt = cpt 
-        self.train = train
         self.batch_size = batch_size
 
         self.data = pickle.load(open(os.path.join(data_path, "data_icd.pkl"), "rb"))
@@ -65,7 +63,7 @@ class SeqCodeDataset(data.Dataset):
         mask = torch.zeros((self.max_len,), dtype=torch.long)
         ivec = []
         jvec = []
-        for i, s in enumerate(seq):
+        for i, s in enumerate(seq[1:]):
             l = [
                  s["diagnoses"] * self.diag, 
                  s["procedures"] * self.proc

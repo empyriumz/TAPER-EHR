@@ -4,8 +4,6 @@ from torch.utils.data.dataloader import default_collate
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data.sampler import Sampler
 
-from .imbalanced_sampler import ImbalancedSampler
-
 
 class MySequentialSampler(Sampler):
     r"""Samples elements sequentially, always in the same order.
@@ -82,8 +80,10 @@ class BaseDataLoader(DataLoader):
             valid_idx = idx_full[:len_valid]
             train_idx = idx_full[len_valid:]
             
-        train_sampler = MySequentialSampler(train_idx)
-        valid_sampler = MySequentialSampler(valid_idx)
+        # train_sampler = MySequentialSampler(train_idx)
+        # valid_sampler = MySequentialSampler(valid_idx)
+        train_sampler = SubsetRandomSampler(train_idx)
+        valid_sampler = SubsetRandomSampler(valid_idx)
            
         # turn off shuffle option which is mutually exclusive with sampler
         self.shuffle = False

@@ -6,7 +6,7 @@
         "type": "Seq_Attention",
         "module_name": "seq_model",
         "args": { 
-            "transformer_state_path": "./saved/sequence_code_training_0/1222_194538/model_best.pth",
+            "transformer_state_path": "saved/sequence_code_training_0/1227_202156/model_best.pth",
             "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,
@@ -21,7 +21,8 @@
             "y_label": "mortality",
             "batch_size": 32,
             "shuffle": true,
-            "validation_split": 0.15,
+            "seed": 20,
+            "validation_split": 0.1,
             "num_workers": 4,
             "med": false,
             "cptcode": false,

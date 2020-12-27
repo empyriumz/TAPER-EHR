@@ -11,8 +11,6 @@ class SeqClassificationDataset(data.Dataset):
         data_path,
         batch_size,
         y_label="los",
-        balanced_data=False,
-        validation_split=0.0,
         med=False,
         diag=True,
         proc=True,
@@ -27,8 +25,6 @@ class SeqClassificationDataset(data.Dataset):
         self.data_path = data_path
         self.batch_size = batch_size
         self.y_label = y_label
-        self.validation_split = validation_split
-        self.balanced_data = balanced_data
         self.data = pickle.load(open(os.path.join(self.data_path, "data_icd.pkl"), "rb"))
         self.data_info = self.data["info"]
         self.data = self.data["data"]
@@ -87,10 +83,10 @@ class SeqClassificationDataset(data.Dataset):
         Returns:
             [type]: [description]
         """        
-        n = len(seq) - 1
+        n = len(seq) - 2
         x_codes = torch.zeros((self.num_codes, self.max_len), dtype=torch.float)
-        demo = torch.Tensor(seq[n]["demographics"])
-        for i, s in enumerate(seq):
+        demo = torch.Tensor(seq[0]["demographics"])
+        for i, s in enumerate(seq[1:]):
             codes = [
                  s["diagnoses"] * self.diag, 
                  s["procedures"] * self.proc
@@ -110,9 +106,9 @@ class SeqClassificationDataset(data.Dataset):
                 los = 9
             y = torch.Tensor([los - 1])
         elif self.y_label == "readmission":
-            y = torch.Tensor([seq[n]["readmission"]])
+            y = torch.Tensor([seq[0]["readmission"]])
         else:
-            y = torch.Tensor([seq[n]["mortality"]])
+            y = torch.Tensor([seq[0]["mortality"]])
 
         return (x_codes.t(), x_cl, demo, y)
 

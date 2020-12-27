@@ -29,15 +29,13 @@ class SeqCodeDataLoader(BaseDataLoader):
         validation_split,
         num_workers,
         seed,
-        training=True,
         **kwargs
     ):
         self.data_path = os.path.expanduser(data_dir)
-        self.train = training
         self.seed = seed
         self.batch_size = batch_size
         self.dataset = SeqCodeDataset(
-            self.data_path, self.batch_size, self.train, **kwargs
+            self.data_path, self.batch_size, **kwargs
         )
         super(SeqCodeDataLoader, self).__init__(
             self.dataset,
@@ -148,20 +146,16 @@ class SeqClassificationDataLoader(BaseDataLoader):
         num_workers,
         y_label="mortality",
         seed=0,
-        training=True,
         **kwargs
     ):
 
         self.data_path = os.path.expanduser(data_dir)
         self.batch_size = batch_size
-        self.train = training
         self.seed = seed
         self.dataset = SeqClassificationDataset(
             self.data_path,
             self.batch_size,
             y_label,
-            self.train,
-            validation_split=validation_split,
             **kwargs
         )
         #self.pos_weight = torch.as_tensor(self.dataset.pos_weight).float()
