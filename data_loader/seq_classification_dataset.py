@@ -87,11 +87,20 @@ class SeqClassificationDataset(data.Dataset):
         x_codes = torch.zeros((self.num_codes, self.max_len), dtype=torch.float)
         demo = torch.Tensor(seq[0]["demographics"])
         for i, s in enumerate(seq[1:]):
-            codes = [
-                 s["diagnoses"] * self.diag, 
-                 s["procedures"] * self.proc
-            ]
-            codes = list(itertools.chain.from_iterable(codes))
+            try:
+                codes = [
+                    s["diagnoses"] * self.diag, 
+                    s["procedures"] * self.proc
+                ]
+            except:
+                codes = [
+                    s["diagnoses"] * self.diag
+                ]
+            try:
+                codes = list(itertools.chain.from_iterable(codes))
+            except:
+                codes = list(itertools.chain.from_iterable([codes]))
+                
             x_codes[codes, i] = 1
 
         x_cl = torch.Tensor(

@@ -30,6 +30,7 @@
             "shuffle": true,
             "validation_split": 0.10,
             "num_workers": 1,
+            "seed": 0,
             "med": false,
             "cpt": false,
             "proc": true,

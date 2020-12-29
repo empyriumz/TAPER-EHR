@@ -64,11 +64,19 @@ class SeqCodeDataset(data.Dataset):
         ivec = []
         jvec = []
         for i, s in enumerate(seq[1:]):
-            l = [
-                 s["diagnoses"] * self.diag, 
-                 s["procedures"] * self.proc
-            ]
-            codes = list(itertools.chain.from_iterable(l))
+            try:
+                l = [
+                    s["diagnoses"] * self.diag, 
+                    s["procedures"] * self.proc
+                ]
+            except:
+                l = [
+                    s["diagnoses"] * self.diag
+                ]
+            try:
+                codes = list(itertools.chain.from_iterable(l))
+            except:
+                codes = list(itertools.chain.from_iterable([l]))
             
             codes_one_hot[codes, i] = 1
             mask[i] = 1
