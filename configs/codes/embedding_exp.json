@@ -9,7 +9,7 @@
         "init_std": 0.02, 
         "proj_init_std": 0.01,
         "args": {
-            "n_token": 809,
+            "n_token": 514,
             "n_layer": 2,
             "d_model": 128,
             "n_head": 8,
@@ -60,11 +60,11 @@
      "trainer": { 
         "type": "SeqCodeTrainer",
         "module_name": "seqcode_trainer",
-        "epochs": 50,
+        "epochs": 100,
         "save_dir": "saved/",
         "save_period": 10,
-        "verbosity": 2000,
-        "log_step":2000,
+        "verbosity": 100,
+        "log_step":100,
         "recall_k": 10,
         "monitor": "min val_loss",
         "code_loss": true,

@@ -6,7 +6,7 @@
         "type": "Seq_Attention",
         "module_name": "seq_model",
         "args": { 
-            "transformer_state_path": "saved/sequence_code_training_0/1227_202156/model_best.pth",
+            "transformer_state_path": "saved/sequence_code_training_0/0105_155754/model_best.pth",
             "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,

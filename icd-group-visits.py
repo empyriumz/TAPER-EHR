@@ -79,34 +79,24 @@ if __name__ == "__main__":
     # add diagnoses
     code = "ICD9_CODE"
     diagnoses = read_icd_diagnoses_table(args.path)
-    diagnoses = filter_codes(diagnoses, code=code)
-    diagnoses['ICD9_SHORT'] = diagnoses['ICD9_CODE'].apply(lambda x: x[:3])
-    
+    diagnoses = filter_codes(diagnoses, code=code, min_=10)
     # add procedures
     procedures = read_icd_procedures_table(args.path)
-    procedures = filter_codes(procedures, code=code)
-    procedures['ICD9_PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: str(x)[:2])
-    # get the unique medical codes after shortening
-    proc_codes, diag_codes = list(set(procedures['ICD9_PROC_SHORT'])), list(set(diagnoses['ICD9_SHORT']))
+    procedures = filter_codes(procedures, code=code, min_=10)
+    with open("vocab/icd-map.pkl", "rb") as f:
+        dic_icd = pickle.load(f)
+    with open("vocab/proc-map.pkl", "rb") as f:
+        dic_proc = pickle.load(f)
     
-    # establish a mapping from codes to integers
-    map_proc = {}
-    for i, key in enumerate(proc_codes):
-        map_proc[key] = i
-    # convert the each shortened icd code to a uniqe integer
-    procedures['ICD9_PROC_SHORT'] = procedures['ICD9_PROC_SHORT'].apply(lambda x: map_proc[x])
-    
-    map_diag = {}
-    mapping_shift = len(proc_codes) # make sure the mapping will not mix
-    for i, key in enumerate(diag_codes):
-        map_diag[key] = i + mapping_shift
+    diagnoses['ICD9_SHORT'] = diagnoses['ICD9_CODE'].apply(lambda x: dic_icd[x])
+    # adding a constant to procedure code mapping to avoid conflicts
+    mapping_shift = max(dic_icd.values())   
+    procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[str(x)]+mapping_shift)
       
-    diagnoses['ICD9_SHORT'] = diagnoses['ICD9_SHORT'].apply(lambda x: map_diag[x])
-    
     diagnoses = group_by_return_col_list(
         diagnoses, ["SUBJECT_ID", "HADM_ID"], 'ICD9_SHORT')
     procedures = group_by_return_col_list(
-        procedures, ["SUBJECT_ID", "HADM_ID"], 'ICD9_PROC_SHORT'
+        procedures, ["SUBJECT_ID", "HADM_ID"], 'PROC_SHORT'
     )
     
     # ICU info
@@ -168,7 +158,7 @@ if __name__ == "__main__":
     # LOS: Length of stay
     df["LOS"] = pd.cut(df["LOS"], bins=los_bins, labels=los_labels)
     df = remove_min_admissions(df, min_admits=args.min_admission)
-    df = df.rename(columns={'ICD9_PROC_SHORT': 'proc', "ICD9_SHORT": "icd", "HADM_ID": "visit-id", "SUBJECT_ID": "id", 'ADMITTIME': 'time'})
+    df = df.rename(columns={'PROC_SHORT': 'proc', "ICD9_SHORT": "icd", "HADM_ID": "visit-id", "SUBJECT_ID": "id", 'ADMITTIME': 'time'})
     data = {}
     pids = list(set(df["id"]))
     for i, pid in enumerate(tqdm(pids)):
@@ -205,22 +195,21 @@ if __name__ == "__main__":
         bins = pd.to_timedelta(np.linspace(0, pid_df.distance.max().days, num=15), unit='D')
         medical_codes = pid_df.groupby(pd.cut(pid_df.distance, bins, include_lowest=True))[['icd', 'proc']].sum()
         medical_codes = medical_codes.reset_index()
-        medical_codes = medical_codes[medical_codes.icd.notna()]
+        medical_codes['icd'] = medical_codes['icd'].apply(lambda d: d if isinstance(d, list) else [])
+        medical_codes['proc'] = medical_codes['proc'].apply(lambda d: d if isinstance(d, list) else [])
+        #medical_codes.fillna(value={'icd':-1,'proc':-1}, inplace=True)
         for _, r in medical_codes.iterrows():
             admit_data = {}
             # gather the medical codes for each visit     
             admit_data["diagnoses"] = r['icd']
-            admit_data["procedures"] = r['proc']      
+            admit_data["procedures"] = r['proc']
             data[i].append(admit_data)
 
-    pids = list(data.keys())
-    def flatten(x):
-        return itertools.chain.from_iterable(x)
-    
+    pids = list(data.keys())    
     data_info = {}
     data_info["num_patients"] = len(pids)
-    num_icd9_codes = len(set(flatten(diagnoses["ICD9_SHORT"])))
-    num_proc_codes = len(set(flatten(procedures["ICD9_PROC_SHORT"])))
+    num_icd9_codes = max(dic_icd.values()) + 1 # mapping start with 0
+    num_proc_codes = max(dic_proc.values()) + 1
     data_info["num_icd9_codes"] = num_icd9_codes
     data_info["num_proc_codes"] = num_proc_codes
     data_info["num_med_codes"] = 0

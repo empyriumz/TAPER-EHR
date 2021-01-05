@@ -3,7 +3,7 @@ import torch.utils.data as data
 import os
 import pickle
 import itertools
-
+import numpy as np
 class SeqCodeDataset(data.Dataset):
     def __init__(
         self,
@@ -39,7 +39,8 @@ class SeqCodeDataset(data.Dataset):
         for v in self.data.values():
             if len(v) > m:
                 m = len(v)
-        return m
+        # substract one which contains demo info instead of visits 
+        return m-1
 
     def __len__(self):
         return len(self.keys)
@@ -64,21 +65,16 @@ class SeqCodeDataset(data.Dataset):
         ivec = []
         jvec = []
         for i, s in enumerate(seq[1:]):
-            try:
-                l = [
+            l = [
                     s["diagnoses"] * self.diag, 
                     s["procedures"] * self.proc
                 ]
-            except:
-                l = [
-                    s["diagnoses"] * self.diag
-                ]
-            try:
-                codes = list(itertools.chain.from_iterable(l))
-            except:
-                codes = list(itertools.chain.from_iterable([l]))
-            
+            codes = list(set(itertools.chain.from_iterable(l)))
             codes_one_hot[codes, i] = 1
+            
+            # codes, counts = np.unique(codes, return_counts=True)
+            # codes_one_hot[codes, i] = torch.LongTensor(counts)
+            
             mask[i] = 1
             for j in codes:
                 for k in codes:

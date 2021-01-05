@@ -66,7 +66,7 @@ class SeqClassificationDataset(data.Dataset):
         for v in self.data.values():
             if len(v) > m:
                 m = len(v)
-        return m
+        return m-1
 
     def __getitem__(self, key):
         return self.preprocess(self.data[key])
@@ -87,21 +87,16 @@ class SeqClassificationDataset(data.Dataset):
         x_codes = torch.zeros((self.num_codes, self.max_len), dtype=torch.float)
         demo = torch.Tensor(seq[0]["demographics"])
         for i, s in enumerate(seq[1:]):
-            try:
-                codes = [
+            l = [
                     s["diagnoses"] * self.diag, 
                     s["procedures"] * self.proc
                 ]
-            except:
-                codes = [
-                    s["diagnoses"] * self.diag
-                ]
-            try:
-                codes = list(itertools.chain.from_iterable(codes))
-            except:
-                codes = list(itertools.chain.from_iterable([codes]))
-                
+            
+            codes = list(itertools.chain.from_iterable(l))
             x_codes[codes, i] = 1
+            
+            #codes, counts = np.unique(codes, return_counts=True)
+            #x_codes[codes, i] = torch.tensor(counts, dtype=torch.float)                   
 
         x_cl = torch.Tensor(
             [
