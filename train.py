@@ -88,7 +88,13 @@ def main(config, resume, nni_params={}):
         lr_scheduler=lr_scheduler,
         train_logger=train_logger,
     )
-
+    # val = config["data_loader"].get("validation_split", False)
+    # val = config["data_loader"].get('args').get("validation_split", False)
+    # print(val)
+    # if val == 1:
+    #     trainer.eval()
+    # else:
+    #     trainer.train()
     trainer.train()
 
 
@@ -138,6 +144,4 @@ if __name__ == "__main__":
         params = nni.get_next_parameter()
     except:
         pass
-    # params = {"text": False}
-    # params = {"text": True, "codes": False, "learning_rate": 0.0001, "demographics_size": 0, "batch_size": 16, "div_factor": 1, "step_size": 40, "class_weight_1": 4.616655939419362, "class_weight_0": 0.81750651640358}
     main(config, args.resume, params)

@@ -9,6 +9,7 @@ class SeqCodeDataset(data.Dataset):
         self,
         data_path,
         batch_size,
+        file_name = None,
         med=False,
         cpt=False,
         diag=False,
@@ -19,8 +20,7 @@ class SeqCodeDataset(data.Dataset):
         self.diag = diag
         self.cpt = cpt 
         self.batch_size = batch_size
-
-        self.data = pickle.load(open(os.path.join(data_path, "data_icd.pkl"), "rb"))
+        self.data = pickle.load(open(os.path.join(data_path, file_name), "rb"))
         self.data_info = self.data["info"]
         self.data = self.data["data"]
 

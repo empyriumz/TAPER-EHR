@@ -45,7 +45,7 @@ if __name__ == "__main__":
     patients = read_patients_table(args.path)
 
     # format date time
-    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv.gz"))
+    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv"))
     df_adm.ADMITTIME = pd.to_datetime(
         df_adm.ADMITTIME, format="%Y-%m-%d %H:%M:%S", errors="coerce"
     )
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         df_adm["DISCHTIME"] - df_adm["ADMITTIME"]
     ).dt.total_seconds() / (24 * 60 * 60)
 
-    df_notes = pd.read_csv(os.path.join(args.path, "NOTEEVENTS.csv.gz"))
+    df_notes = pd.read_csv(os.path.join(args.path, "NOTEEVENTS.csv"))
     df_notes = df_notes.sort_values(by=["SUBJECT_ID", "HADM_ID", "CHARTDATE"])
     df_adm_notes = pd.merge(
         df_adm[

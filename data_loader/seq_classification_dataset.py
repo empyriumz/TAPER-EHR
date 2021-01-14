@@ -9,8 +9,9 @@ class SeqClassificationDataset(data.Dataset):
     def __init__(
         self,
         data_path,
-        batch_size,
+        batch_size,       
         y_label="los",
+        file_name = None,
         med=False,
         diag=True,
         proc=True,
@@ -25,7 +26,7 @@ class SeqClassificationDataset(data.Dataset):
         self.data_path = data_path
         self.batch_size = batch_size
         self.y_label = y_label
-        self.data = pickle.load(open(os.path.join(self.data_path, "data_icd.pkl"), "rb"))
+        self.data = pickle.load(open(os.path.join(data_path, file_name), "rb"))
         self.data_info = self.data["info"]
         self.data = self.data["data"]
 

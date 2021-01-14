@@ -4,7 +4,6 @@ import os
 import argparse
 from utils.data_utils import *
 from tqdm import tqdm
-import itertools
 
 if __name__ == "__main__":
 
@@ -20,6 +19,9 @@ if __name__ == "__main__":
         "-s", "--save", default=None, type=str, help="path to dump output"
     )
     parser.add_argument(
+        "-b", "--bin", default="linear", type=str, help="decide how to generate the bins in grouping visits"
+    )
+    parser.add_argument(
         "-min-adm",
         "--min_admission",
         default=1,
@@ -27,9 +29,9 @@ if __name__ == "__main__":
         help="minimum number of admissions for each patient",
     )
     args = parser.parse_args()
-
+    assert args.bin in ['linear', 'exp'], 'unsupported cutting method!'
     # format date time
-    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv.gz"))
+    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv"))
     df_adm.ADMITTIME = pd.to_datetime(
         df_adm.ADMITTIME, format="%Y-%m-%d %H:%M:%S", errors="coerce"
     )
@@ -90,8 +92,11 @@ if __name__ == "__main__":
     
     diagnoses['ICD9_SHORT'] = diagnoses['ICD9_CODE'].apply(lambda x: dic_icd[x])
     # adding a constant to procedure code mapping to avoid conflicts
-    mapping_shift = max(dic_icd.values())   
-    procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[str(x)]+mapping_shift)
+    mapping_shift = 283
+    procedures['ICD9_CODE'] = procedures['ICD9_CODE'].astype(str)
+    procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[x]+mapping_shift 
+                                                             if x in dic_proc.keys() else None)
+    procedures.dropna(inplace=True)
       
     diagnoses = group_by_return_col_list(
         diagnoses, ["SUBJECT_ID", "HADM_ID"], 'ICD9_SHORT')
@@ -160,6 +165,7 @@ if __name__ == "__main__":
     df = remove_min_admissions(df, min_admits=args.min_admission)
     df = df.rename(columns={'PROC_SHORT': 'proc', "ICD9_SHORT": "icd", "HADM_ID": "visit-id", "SUBJECT_ID": "id", 'ADMITTIME': 'time'})
     data = {}
+    interval = 15
     pids = list(set(df["id"]))
     for i, pid in enumerate(tqdm(pids)):
         pid_df = df[df["id"] == pid]
@@ -192,12 +198,16 @@ if __name__ == "__main__":
         data[i].append(admit_data)
         
         pid_df['distance'] = pid_df.time.iloc[0] - pid_df.time
-        bins = pd.to_timedelta(np.linspace(0, pid_df.distance.max().days, num=15), unit='D')
+        if args.bin == 'linear':
+            bins = pd.to_timedelta(np.linspace(0, pid_df.distance.max().days, num=interval+1), unit='D')
+        else:
+            bins = [0]+list(np.geomspace(1, pid_df.distance.max().days, num=interval+1))
+            bins = pd.to_timedelta(bins,  unit='D')
         medical_codes = pid_df.groupby(pd.cut(pid_df.distance, bins, include_lowest=True))[['icd', 'proc']].sum()
         medical_codes = medical_codes.reset_index()
         medical_codes['icd'] = medical_codes['icd'].apply(lambda d: d if isinstance(d, list) else [])
         medical_codes['proc'] = medical_codes['proc'].apply(lambda d: d if isinstance(d, list) else [])
-        #medical_codes.fillna(value={'icd':-1,'proc':-1}, inplace=True)
+
         for _, r in medical_codes.iterrows():
             admit_data = {}
             # gather the medical codes for each visit     
@@ -220,7 +230,7 @@ if __name__ == "__main__":
     if not os.path.isdir(args.save):
         os.makedirs(args.save)
     
-    with open(os.path.join(args.save, "data_icd.pkl"), "wb") as handle:
+    with open(os.path.join(args.save, "data_{}_{}.pkl".format(args.bin, interval)), "wb") as handle:
         data_dict = {}
         data_dict["info"] = data_info
         data_dict["data"] = data

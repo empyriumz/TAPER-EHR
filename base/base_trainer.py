@@ -170,7 +170,22 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
+    
+    def eval(self):
+        """
+        evaluation mode
+        """
+        for epoch in range(self.start_epoch, self.epochs + 1):
+            result = self._valid_epoch(epoch)
+    
+    def _valid_epoch(self, epoch):
+        """
+        Training logic for an epoch
 
+        :param epoch: Current epoch number
+        """
+        raise NotImplementedError
+            
     def _train_epoch(self, epoch):
         """
         Training logic for an epoch
@@ -219,11 +234,11 @@ class BaseTrainer:
         self.mnt_best = checkpoint["monitor_best"]
 
         # load architecture params from checkpoint.
-        if checkpoint["config"]["arch"] != self.config["arch"]:
-            self.logger.warning(
-                "Warning: Architecture configuration given in config file is different from that of checkpoint. "
-                + "This may yield an exception while state_dict is being loaded."
-            )
+        # if checkpoint["config"]["arch"] != self.config["arch"]:
+        #     self.logger.warning(
+        #         "Warning: Architecture configuration given in config file is different from that of checkpoint. "
+        #         + "This may yield an exception while state_dict is being loaded."
+        #     )
         self.model.load_state_dict(checkpoint["state_dict"])
 
         # load optimizer state from checkpoint only when optimizer type is not changed.

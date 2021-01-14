@@ -29,7 +29,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # format date time
-    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv.gz"))
+    df_adm = pd.read_csv(os.path.join(args.path, "ADMISSIONS.csv"))
     df_adm.ADMITTIME = pd.to_datetime(
         df_adm.ADMITTIME, format="%Y-%m-%d %H:%M:%S", errors="coerce"
     )
@@ -92,8 +92,10 @@ if __name__ == "__main__":
     
     diagnoses['ICD9_SHORT'] = diagnoses['ICD9_CODE'].apply(lambda x: dic_icd[x])
     # adding a constant to procedure code mapping to avoid conflicts
-    mapping_shift = max(dic_icd.values())   
-    procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[str(x)]+mapping_shift)
+    mapping_shift = max(dic_icd.values())
+    procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[x]+mapping_shift 
+                                                             if x in dic_proc.keys() else None)
+    procedures.dropna(inplace=True)
     
     diagnoses = group_by_return_col_list(
         diagnoses, ["SUBJECT_ID", "HADM_ID"], 'ICD9_SHORT')
@@ -216,7 +218,7 @@ if __name__ == "__main__":
     if not os.path.isdir(args.save):
         os.makedirs(args.save)
     
-    with open(os.path.join(args.save, "data_icd.pkl"), "wb") as handle:
+    with open(os.path.join(args.save, "data_no_grouped.pkl"), "wb") as handle:
         data_dict = {}
         data_dict["info"] = data_info
         data_dict["data"] = data

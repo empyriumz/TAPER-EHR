@@ -9,7 +9,7 @@ import re
 
 
 def read_patients_table(path):
-    p = pd.read_csv(os.path.join(path, "PATIENTS.csv.gz"))
+    p = pd.read_csv(os.path.join(path, "PATIENTS.csv"))
     p = p[
         [
             "SUBJECT_ID",
@@ -24,7 +24,7 @@ def read_patients_table(path):
 
 
 def read_cptevents_table(path):
-    cpt = pd.read_csv(os.path.join(path, "CPTEVENTS.csv.gz"))
+    cpt = pd.read_csv(os.path.join(path, "CPTEVENTS.csv"))
     cpt = cpt[
         [
             "SUBJECT_ID",
@@ -36,9 +36,9 @@ def read_cptevents_table(path):
 
 
 def read_icd_procedures_table(path):
-    codes = pd.read_csv(os.path.join(path, "D_ICD_PROCEDURES.csv.gz"))
+    codes = pd.read_csv(os.path.join(path, "D_ICD_PROCEDURES.csv"))
     codes = codes[["ICD9_CODE", "SHORT_TITLE", "LONG_TITLE"]]
-    procedures = pd.read_csv(os.path.join(path, "PROCEDURES_ICD.csv.gz"))
+    procedures = pd.read_csv(os.path.join(path, "PROCEDURES_ICD.csv"))
     procedures = procedures.merge(
         codes, how="inner", left_on="ICD9_CODE", right_on="ICD9_CODE"
     )
@@ -62,7 +62,7 @@ def compute_time_delta(df):
 
 
 def read_admissions_table(path):
-    admits = pd.read_csv(os.path.join(path, "ADMISSIONS.csv.gz"))
+    admits = pd.read_csv(os.path.join(path, "ADMISSIONS.csv"))
     admits = admits[
         [
             "SUBJECT_ID",
@@ -113,7 +113,7 @@ def add_readmission_column(df_adm):
 
 
 def read_prescriptions_table(path):
-    prescription = pd.read_csv(os.path.join(path, "PRESCRIPTIONS.csv.gz"))
+    prescription = pd.read_csv(os.path.join(path, "PRESCRIPTIONS.csv"))
     prescription = prescription[~prescription["NDC"].isna()]
     prescription = prescription[["SUBJECT_ID", "HADM_ID", "NDC"]].astype(int)
     prescription = prescription.dropna()
@@ -148,7 +148,7 @@ def filter_notes_table(
 
 
 def read_notes_table(path):
-    notes = pd.read_csv(os.path.join(path, "NOTEEVENTS.csv.gz"))
+    notes = pd.read_csv(os.path.join(path, "NOTEEVENTS.csv"))
     notes["TEXT"] = notes["TEXT"].fillna(" ")
     notes["TEXT"] = notes["TEXT"].str.replace("\n", " ")
     notes["TEXT"] = notes["TEXT"].str.replace("\r", " ")
@@ -161,16 +161,16 @@ def read_notes_table(path):
 
 
 def read_icustays_table(path):
-    icu = pd.read_csv(os.path.join(path, "ICUSTAYS.csv.gz"))
+    icu = pd.read_csv(os.path.join(path, "ICUSTAYS.csv"))
     icu["INTIME"] = pd.to_datetime(icu["INTIME"])
     icu["OUTTIME"] = pd.to_datetime(icu["OUTTIME"])
     return icu
 
 
 def read_icd_diagnoses_table(path):
-    codes = pd.read_csv(os.path.join(path, "D_ICD_DIAGNOSES.csv.gz"))
+    codes = pd.read_csv(os.path.join(path, "D_ICD_DIAGNOSES.csv"))
     codes = codes[["ICD9_CODE", "SHORT_TITLE", "LONG_TITLE"]]
-    diagnoses = pd.read_csv(os.path.join(path, "DIAGNOSES_ICD.csv.gz"))
+    diagnoses = pd.read_csv(os.path.join(path, "DIAGNOSES_ICD.csv"))
     diagnoses = diagnoses.merge(
         codes, how="inner", left_on="ICD9_CODE", right_on="ICD9_CODE"
     )
