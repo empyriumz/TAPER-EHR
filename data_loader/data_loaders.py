@@ -146,12 +146,14 @@ class SeqClassificationDataLoader(BaseDataLoader):
         num_workers,
         y_label="mortality",
         seed=0,
+        test=False,
         **kwargs
     ):
 
         self.data_path = os.path.expanduser(data_dir)
         self.batch_size = batch_size
         self.seed = seed
+        self.test = test
         self.dataset = SeqClassificationDataset(
             self.data_path,
             self.batch_size,
@@ -168,5 +170,6 @@ class SeqClassificationDataLoader(BaseDataLoader):
             validation_split,
             num_workers,
             collate_fn=collate,
-            seed = self.seed
+            seed = self.seed,
+            test = self.test
         )

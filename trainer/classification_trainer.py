@@ -184,3 +184,53 @@ class ClassificationTrainer(BaseTrainer):
             "val_loss": total_val_loss / len(self.valid_data_loader),
             "val_metrics": total_val_metrics,
         }
+        
+    def _test(self):
+        """
+        Final test after finishing training 
+
+        return: A log that contains information about test
+
+        Note:
+            The test metrics in log must have the key 'test_metrics'.
+        """
+        self.model.eval()
+        total_test_loss = 0
+        total_test_metrics = np.zeros(len(self.metrics))
+        all_t = []
+        all_o = []
+        with torch.no_grad():
+            for data, target in self.data_loader:
+                target = target.to(self.device)
+                if len(target.shape) == 0:
+                    target = target.unsqueeze(dim=0)
+                output = None
+                if self.config["loss"] == "bce_loss":
+                    output, _ = self.model(data, device=self.device)
+                elif self.config["loss"] == "bce_loss_with_logits":
+                    _ ,output= self.model(data, device=self.device)
+                loss = self.loss(
+                    output,
+                    target.reshape(
+                        -1,
+                    ),
+                )
+                all_o.append(output.detach().cpu().numpy())
+                all_t.append(target.detach().cpu().numpy())
+                self.writer.add_scalar("loss", loss.item())
+                total_test_loss += loss.item()
+                total_test_metrics += self._eval_metrics(output, target)
+                del output
+                del target
+                
+        total_test_metrics = (total_test_metrics / len(self.data_loader)).tolist()
+        if self.prauc_flag:
+            all_o = np.hstack(all_o)
+            all_t = np.hstack(all_t)
+            total_test_metrics[-2] = pr_auc_1(all_o, all_t)
+            total_test_metrics[-1] = roc_auc_1(all_o, all_t)
+
+        return {
+            "test_loss": total_test_loss / len(self.data_loader),
+            "test_metrics": total_test_metrics,
+        }

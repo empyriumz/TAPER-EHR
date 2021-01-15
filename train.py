@@ -1,7 +1,3 @@
-try:
-    import nni
-except:
-    pass
 import os
 import json
 import argparse
@@ -15,46 +11,22 @@ from model import optimization
 def get_instance(module, name, config, *args):
     return getattr(module, config[name]["type"])(*args, **config[name]["args"])
 
-
 def import_module(name, config):
     return getattr(
         __import__("{}.{}".format(name, config[name]["module_name"])),
         config[name]["type"],
     )
 
-
-def mod_config(config, nni_params):
-    if nni_params == None:
-        return config
-
-    def recurse_dict(d, k, v):
-        if k in d:
-            d[k] = v
-            return d
-        for kk, vv in d.items():
-            if type(vv) == dict:
-                d[kk] = recurse_dict(vv, k, v)
-        return d
-
-    for k, v in nni_params.items():
-        if k in config:
-            config[k] = v
-            continue
-        for kk, vv in config.items():
-            if type(vv) == dict:
-                config[kk] = recurse_dict(vv, k, v)
-    return config
-
-
-def main(config, resume, nni_params={}):
-
-    config = mod_config(config, nni_params)
+def main(config, resume, test):
     train_logger = Logger()
 
     # setup data_loader instances
     data_loader = get_instance(module_data, "data_loader", config)
-    valid_data_loader = data_loader.split_validation()
-
+    valid_data_loader = None
+    if test == 0:
+        assert data_loader.test == False, "incompatible configs, please set test to false"
+        valid_data_loader = data_loader.split_validation()       
+      
     # build model architecture
     model = import_module("model", config)(**config["model"]["args"])
     # model = get_instance(module_arch, 'arch', config)
@@ -69,7 +41,7 @@ def main(config, resume, nni_params={}):
     optimizer = get_instance(torch.optim, "optimizer", config, trainable_params)
     try:
         lr_scheduler = get_instance(
-        optimization, "lr_scheduler", config, optimizer
+            optimization, "lr_scheduler", config, optimizer
         )
     except:
         lr_scheduler = get_instance(
@@ -88,14 +60,11 @@ def main(config, resume, nni_params={}):
         lr_scheduler=lr_scheduler,
         train_logger=train_logger,
     )
-    # val = config["data_loader"].get("validation_split", False)
-    # val = config["data_loader"].get('args').get("validation_split", False)
-    # print(val)
-    # if val == 1:
-    #     trainer.eval()
-    # else:
-    #     trainer.train()
-    trainer.train()
+    if test == 0:
+        trainer.train()
+    else:
+        trainer.test()
+    
 
 
 if __name__ == "__main__":
@@ -115,14 +84,14 @@ if __name__ == "__main__":
         help="path to latest checkpoint (default: None)",
     )
     parser.add_argument(
-        "-d",
-        "--device",
-        default=None,
-        type=str,
-        help="indices of GPUs to enable (default: None)",
+        "-t",
+        "--test",
+        default=0,
+        type=int,
+        help="enable test mode",
     )
     args = parser.parse_args()
-
+    assert args.test in [0, 1], "invalid test mode!"
     if args.config:
         # load config file
         config = json.load(open(args.config))
@@ -136,12 +105,4 @@ if __name__ == "__main__":
             "Configuration file need to be specified. Add '-c config.json', for example."
         )
 
-    if args.device:
-       os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-    torch.set_default_tensor_type(torch.cuda.FloatTensor if args.device else torch.FloatTensor)
-    params = {}
-    try:
-        params = nni.get_next_parameter()
-    except:
-        pass
-    main(config, args.resume, params)
+    main(config, args.resume, args.test)

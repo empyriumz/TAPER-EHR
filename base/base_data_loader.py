@@ -36,14 +36,18 @@ class BaseDataLoader(DataLoader):
         num_workers,
         collate_fn=default_collate,
         seed=0,
+        test=False,
     ):
         self.validation_split = validation_split
         self.shuffle = shuffle
         self.seed = seed
         self.dataset = dataset
         self.n_samples = len(dataset)
-
-        self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
+        self.test = test
+        if self.test:
+            self.sampler = self.test_sampler()
+        else:
+            self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
 
         self.init_kwargs = {
             "dataset": dataset,
@@ -54,7 +58,12 @@ class BaseDataLoader(DataLoader):
         }
 
         super(BaseDataLoader, self).__init__(sampler=self.sampler, **self.init_kwargs)
-
+    
+    def test_sampler(self):
+        self.shuffle = False
+        idx = np.arange(self.n_samples)
+        return MySequentialSampler(idx)
+        
     def _split_sampler(self, split):
         if split == 0.0 and not hasattr(self.dataset, "valid_idx"):
             return None, None

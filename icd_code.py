@@ -93,6 +93,7 @@ if __name__ == "__main__":
     diagnoses['ICD9_SHORT'] = diagnoses['ICD9_CODE'].apply(lambda x: dic_icd[x])
     # adding a constant to procedure code mapping to avoid conflicts
     mapping_shift = max(dic_icd.values())
+    procedures['ICD9_CODE'] = procedures['ICD9_CODE'].astype(str)
     procedures['PROC_SHORT'] = procedures['ICD9_CODE'].apply(lambda x: dic_proc[x]+mapping_shift 
                                                              if x in dic_proc.keys() else None)
     procedures.dropna(inplace=True)

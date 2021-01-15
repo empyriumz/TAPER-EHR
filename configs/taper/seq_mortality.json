@@ -6,7 +6,7 @@
         "type": "Seq_Attention",
         "module_name": "seq_model",
         "args": { 
-            "transformer_state_path": "saved/sequence_code_training_0/0109_193615/checkpoint-epoch50.pth",
+            "transformer_state_path": "saved/sequence_code_training_0/0115_150407/checkpoint-epoch100.pth",
             "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,
@@ -23,7 +23,8 @@
             "file_name": "data_no_grouped.pkl",
             "shuffle": true,
             "seed": 20,
-            "validation_split": 0.1,
+            "test": true,
+            "validation_split": 0.99,
             "num_workers": 4,          
             "med": false,
             "cptcode": false,
@@ -59,8 +60,7 @@
     "trainer": {
         "type": "ClassificationTrainer",
         "module_name": "classification_trainer",
-        "epochs": 1,
-        "resume": "saved/sequence_code_training_0/0109_193615/checkpoint-epoch50.pth",
+        "epochs": 5,
         "save_dir": "saved/",
         "save_period": 10,
         "verbosity": 2000,
