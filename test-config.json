@@ -1,0 +1,21 @@
+{
+"data_loader": {
+    "type": "SeqClassificationDataLoader",
+    "args": {
+        "data_dir": "./data/output",
+        "y_label": "mortality",
+        "batch_size": 64,
+        "file_name": "data_linear_15.pkl",
+        "shuffle": true,
+        "seed": 20,
+        "test": true,
+        "validation_split": 0.5,
+        "num_workers": 4,          
+        "med": false,
+        "cptcode": false,
+        "proc": true,
+        "diag": true
+        }
+    },
+"trained_model_path": "saved/mortality-code/trained_mortality/checkpoint-epoch50.pth"
+}

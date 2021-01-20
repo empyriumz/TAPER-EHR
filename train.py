@@ -17,15 +17,12 @@ def import_module(name, config):
         config[name]["type"],
     )
 
-def main(config, resume, test):
+def main(config, resume):
     train_logger = Logger()
 
     # setup data_loader instances
     data_loader = get_instance(module_data, "data_loader", config)
-    valid_data_loader = None
-    if test == 0:
-        assert data_loader.test == False, "incompatible configs, please set test to false"
-        valid_data_loader = data_loader.split_validation()       
+    valid_data_loader = data_loader.split_validation()
       
     # build model architecture
     model = import_module("model", config)(**config["model"]["args"])
@@ -60,15 +57,11 @@ def main(config, resume, test):
         lr_scheduler=lr_scheduler,
         train_logger=train_logger,
     )
-    if test == 0:
-        trainer.train()
-    else:
-        trainer.test()
-    
 
+    trainer.train()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Structmed Trainer")
+    parser = argparse.ArgumentParser(description="TAPER Trainer")
     parser.add_argument(
         "-c",
         "--config",
@@ -83,15 +76,7 @@ if __name__ == "__main__":
         type=str,
         help="path to latest checkpoint (default: None)",
     )
-    parser.add_argument(
-        "-t",
-        "--test",
-        default=0,
-        type=int,
-        help="enable test mode",
-    )
     args = parser.parse_args()
-    assert args.test in [0, 1], "invalid test mode!"
     if args.config:
         # load config file
         config = json.load(open(args.config))
@@ -105,4 +90,4 @@ if __name__ == "__main__":
             "Configuration file need to be specified. Add '-c config.json', for example."
         )
 
-    main(config, args.resume, args.test)
+    main(config, args.resume)

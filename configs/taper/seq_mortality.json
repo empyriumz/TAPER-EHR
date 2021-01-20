@@ -24,7 +24,7 @@
             "shuffle": true,
             "seed": 20,
             "test": true,
-            "validation_split": 0.99,
+            "validation_split": 0.5,
             "num_workers": 4,          
             "med": false,
             "cptcode": false,
@@ -67,6 +67,7 @@
         "log_step": 1000,
         "class_weight_0": 0.5,
         "class_weight_1": 1.0,
+        "resume":"saved/mortality-code/trained_mortality/checkpoint-epoch50.pth",
         "monitor": "max accuracy",
         "tensorboardX": false,
         "log_dir": "saved/runs"

@@ -170,29 +170,7 @@ class BaseTrainer:
 
             if epoch % self.save_period == 0:
                 self._save_checkpoint(epoch, save_best=best)
-    
-    def test(self):
-        """
-        test mode
-        """
-        result = self._test()
-        log = {'test_loss': result['test_loss']}
-        for key, value in result.items():
-            if key == "test_metrics":
-                log.update(
-                        {
-                         "test_" + mtr.__name__: value[i]
-                         for i, mtr in enumerate(self.metrics)
-                        }
-                    )
-            # elif key == 'test_loss':
-            #     log.update({"test_loss": result[key]})
-        for key, value in log.items():
-            self.logger.info("    {:15s}: {:6f}".format(str(key), value))
 
-    def _test(self):
-        raise NotImplementedError
-    
     def _valid_epoch(self, epoch):
         """
         Training logic for an epoch
