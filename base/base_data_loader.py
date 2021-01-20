@@ -45,7 +45,7 @@ class BaseDataLoader(DataLoader):
         self.n_samples = len(dataset)
         self.test = test
         if self.test:
-            self.sampler = self.test_sampler()
+            self.sampler, self.valid_sampler = self.test_sampler(), None
         else:
             self.sampler, self.valid_sampler = self._split_sampler(self.validation_split)
 

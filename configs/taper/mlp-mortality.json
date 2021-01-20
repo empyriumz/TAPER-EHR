@@ -1,16 +1,17 @@
 {
-    "name": "mortality-code",
+    "name": "mortality-code-mlp",
     "n_gpu": 1,
     
     "model": {
-        "type": "Seq_Attention",
-        "module_name": "seq_model",
+        "type": "Seq_MLP",
+        "module_name": "mlp",
         "args": { 
-            "transformer_state_path": "saved/sequence_code_training_0/0115_150407/checkpoint-epoch100.pth",
+            "num_codes": 514,
+            "num_visits": 29,
             "num_classes": 1,
             "demographics": true,
             "demographics_size": 54,
-            "div_factor": 2,
+            "div_factor": 4,
             "codes": true 
         }
     },
@@ -24,7 +25,7 @@
             "shuffle": true,
             "seed": 20,
             "test": false,
-            "validation_split": 0.5,
+            "validation_split": 0.1,
             "num_workers": 4,          
             "med": false,
             "cptcode": false,
