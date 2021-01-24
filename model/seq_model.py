@@ -53,24 +53,26 @@ class Seq_Attention(BaseModel):
         x_cl = x_cl.to(device)
         demo = demo.to(device)
         b_is = b_is.to(device)
+        #patient_rep = torch.Tensor([]).to(device)
         patient_rep = None
-        # x_code = x_code.unsqueeze(1) # only needed if feeding single row and len(shape) == 3
         with torch.no_grad():
             mem_out = self.transformer._forward(x_codes)
             mem_out = mem_out[x_cl, b_is, :]
-
-        # mem_out = torch.mean(mem_out, dim=0)
-
-        if self.codes:
+        if self.codes and self.demographics:           
+            patient_rep = torch.cat((mem_out, demo), dim=1)
+        elif self.codes and not self.demographics:
             patient_rep = mem_out
-
-        if self.demographics:
-            if len(patient_rep.shape) == 0:
-                patient_rep = demo
-            else:
-                if len(patient_rep.shape) == 1:
-                    patient_rep = patient_rep.unsqueeze(dim=0)
-                patient_rep = torch.cat((patient_rep, demo), dim=1)
+        elif not self.codes and self.demographics:
+            patient_rep = demo
+        else:
+            raise ValueError("codes and demographics can be false at the same time")
+        # if self.demographics:
+        #     if len(patient_rep.shape) == 0:
+        #         patient_rep = demo
+        #     else:
+        #         if len(patient_rep.shape) == 1:
+        #             patient_rep = patient_rep.unsqueeze(dim=0)
+        #         patient_rep = torch.cat((patient_rep, demo), dim=1)
 
         logits = self.predictor(patient_rep)
         if self.num_classes > 1:
